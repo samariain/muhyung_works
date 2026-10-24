@@ -1,32 +1,1540 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>내 웹사이트</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      background-color: #f4f6f8;
-    }
-    .card {
-      background: white;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>무형상품팀 Co-works</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root{
+    --bg:#f4f3ee; --surface0:#eceade; --surface1:#faf9f4; --surface2:#ffffff;
+    --border:#e1e0d9; --border-strong:#c9c7bd;
+    --ink:#2b2a26; --sec:#5c5a53; --muted:#908e86;
+    --accent:#2a6cd4; --accent-bg:#eaf1fb;
+    --green:#1f9d6b; --red:#c9342c; --amber:#d08a00;
+    --warn:#b8860b; --warn-bg:#fdf6e3; --radius:8px;
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI","Malgun Gothic","Noto Sans KR",sans-serif;
+    --num:"SF Mono","Roboto Mono",ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--font);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;}
+  .num{font-family:var(--num);font-variant-numeric:tabular-nums;}
+  #gate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100;}
+  #gate .box{background:var(--surface2);border:0.5px solid var(--border);border-radius:16px;padding:40px 36px;width:340px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.06);}
+  #gate h1{font-size:18px;margin:0 0 6px;} #gate p{font-size:13px;color:var(--muted);margin:0 0 24px;}
+  #gate input{width:100%;padding:11px 14px;border:1px solid var(--border-strong);border-radius:8px;font-size:14px;margin-bottom:12px;text-align:center;}
+  #gate button{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;}
+  #gate .err{color:var(--red);font-size:12px;height:16px;margin-bottom:8px;} #gate .hint{font-size:11px;color:var(--muted);margin-top:14px;}
+  .wrap{max-width:1100px;margin:0 auto;padding:24px 20px 60px;}
+  .topbar{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px;}
+  .title{font-size:20px;font-weight:600;} .asof{font-size:13px;color:var(--muted);}
+  .monthsel{display:inline-flex;align-items:center;gap:4px;}
+  .mbtn{border:0.5px solid var(--border);background:var(--surface1);color:var(--sec);width:26px;height:28px;border-radius:7px;cursor:pointer;font-size:14px;line-height:1;}
+  .mbtn:hover{background:var(--surface2);}
+  .msel{border:0.5px solid var(--border-strong);background:var(--surface1);color:var(--ink);font-size:13px;font-weight:600;padding:5px 8px;border-radius:7px;cursor:pointer;font-family:inherit;}
+  .demo-note{font-size:12px;color:var(--muted);margin-bottom:18px;}
+  .tabs{margin-bottom:22px;}
+  .tab-row{display:flex;gap:2px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .tab{padding:10px 18px;font-size:14px;cursor:pointer;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);}
+  .tab.active{color:var(--ink);font-weight:500;border-bottom-color:var(--accent);}
+  .subtab-row{display:flex;gap:4px;flex-wrap:wrap;margin-top:10px;padding:3px;background:var(--surface2);border-radius:9px;align-self:flex-start;width:fit-content;}
+  .subtab{padding:6px 14px;font-size:13px;cursor:pointer;background:none;border:none;border-radius:7px;color:var(--muted);}
+  .subtab.active{background:var(--surface1);color:var(--ink);font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,0.06);}
+  .card{background:var(--surface1);border-radius:12px;padding:18px 20px;}
+  .card2{background:var(--surface2);border:0.5px solid var(--border);border-radius:12px;padding:18px 20px;}
+  .lbl{font-size:13px;color:var(--sec);margin-bottom:8px;} .mut{color:var(--muted);}
+  .grid{display:grid;gap:12px;} .big{font-family:var(--num);font-size:28px;font-variant-numeric:tabular-nums;}
+  .k{font-size:12px;color:var(--muted);margin-bottom:3px;} .sec-title{font-size:13px;color:var(--sec);margin:0 0 8px;} .mb{margin-bottom:22px;}
+  /* 홈 팀 현황 카드 */
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  @media(max-width:860px){.stat-grid{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:480px){.stat-grid{grid-template-columns:1fr;}}
+  .stat-card{background:var(--surface1);border-radius:12px;padding:15px 16px 14px;border-top:3px solid var(--border);}
+  .stat-k{font-size:12px;color:var(--muted);margin-bottom:7px;}
+  .stat-big{font-family:var(--num);font-size:26px;font-variant-numeric:tabular-nums;line-height:1.1;}
+  .stat-sub{font-size:11px;color:var(--muted);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .empty-banner{background:var(--accent-bg);color:var(--sec);font-size:12.5px;line-height:1.5;padding:12px 14px;border-radius:10px;margin-bottom:14px;}
+  /* 홈 게시판 */
+  .board-split{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:760px){.board-split{grid-template-columns:1fr;}}
+  .board{min-width:0;}                 /* 긴 본문이 칸 너비를 밀어내지 않도록(그리드 1fr 유지) */
+  .board-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;gap:8px;flex-wrap:wrap;}
+  .board-title{font-size:14px;font-weight:600;color:var(--ink);}
+  .board-add{font-size:12px;color:var(--accent);cursor:pointer;white-space:nowrap;}
+  .board-add:hover{text-decoration:underline;}
+  .board-body{display:flex;flex-direction:column;gap:8px;min-width:0;}
+  .board-empty{font-size:12px;color:var(--muted);padding:14px;text-align:center;background:var(--surface1);border-radius:10px;}
+  .board-more{display:block;text-align:center;font-size:12px;color:var(--accent);cursor:pointer;padding:7px;border:1px dashed var(--border);border-radius:9px;margin-top:2px;}
+  .board-more:hover{background:var(--surface1);}
+  .notice-item,.sodam-item{background:var(--surface1);border-radius:10px;padding:11px 13px;cursor:pointer;transition:background .12s;min-height:66px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;min-width:0;overflow:hidden;}
+  .notice-item:hover,.sodam-item:hover{background:var(--surface2);}
+  .notice-t{font-size:13px;font-weight:600;color:var(--ink);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+  .notice-b{font-size:12px;color:var(--sec);margin-top:3px;min-height:15px;line-height:1.45;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+  .notice-m,.sodam-m{font-size:11px;color:var(--muted);margin-top:5px;}
+  .sodam-t{font-size:13px;color:var(--ink);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+  /* 전체보기 팝업 */
+  .modal-lg{max-width:560px;width:92vw;}
+  .arc-list{display:flex;flex-direction:column;gap:8px;max-height:min(60vh,440px);overflow-y:auto;margin:4px 0 2px;}
+  .arc-item{background:var(--surface1);border-radius:9px;padding:10px 12px;cursor:pointer;}
+  .arc-item:hover{background:var(--surface2);}
+  .arc-t{font-size:13px;font-weight:600;color:var(--ink);}
+  .arc-b{font-size:12px;color:var(--sec);margin-top:3px;line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+  .arc-m{font-size:11px;color:var(--muted);margin-top:5px;}
+  /* 칸반 */
+  .kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  @media(max-width:760px){.kanban{grid-template-columns:repeat(2,1fr);}}
+  .kan-col{background:var(--surface2);border:0.5px solid var(--border);border-radius:12px;padding:10px 9px;min-height:90px;}
+  .kan-head{font-size:12px;font-weight:700;margin-bottom:9px;display:flex;align-items:center;gap:6px;padding:0 3px;}
+  .kan-cnt{background:rgba(0,0,0,0.06);color:var(--sec);font-size:11px;font-weight:600;border-radius:9px;padding:0 7px;}
+  .kan-body{display:flex;flex-direction:column;gap:8px;}
+  .kan-card{background:var(--surface1);border-left:3px solid #999;border-radius:8px;padding:9px 10px;cursor:pointer;transition:box-shadow .12s;}
+  .kan-card:hover{box-shadow:0 2px 10px rgba(0,0,0,0.08);}
+  .kan-t{font-size:12.5px;font-weight:500;color:var(--ink);line-height:1.35;margin-bottom:7px;}
+  .kan-meta{display:flex;justify-content:space-between;align-items:center;gap:6px;}
+  .wf-part{font-size:10.5px;font-weight:600;border-radius:5px;padding:1px 7px;}
+  .kan-owner{font-size:11px;color:var(--muted);}
+  .kan-empty{height:4px;}
+  /* 모달 공통 추가 */
+  .ta{width:100%;min-height:62px;padding:8px 10px;border:1px solid var(--border-strong);border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box;}
+  .modal-foot{display:flex;gap:8px;margin-top:18px;justify-content:space-between;align-items:center;}
+  .detail-body{font-size:13px;color:var(--sec);line-height:1.55;white-space:pre-wrap;background:var(--surface1);border-radius:8px;padding:10px 12px;}
+  .cmt-list{display:flex;flex-direction:column;gap:7px;max-height:200px;overflow-y:auto;}
+  .cmt{background:var(--surface1);border-radius:8px;padding:7px 10px;}
+  .cmt-a{font-size:12px;font-weight:600;color:var(--ink);}
+  .cmt-x{font-size:12.5px;color:var(--sec);margin-top:2px;white-space:pre-wrap;}
+  .tl-list{display:flex;flex-direction:column;gap:0;max-height:220px;overflow-y:auto;}
+  .tl{display:flex;gap:10px;position:relative;padding-bottom:12px;}
+  .tl:not(:last-child)::before{content:'';position:absolute;left:4px;top:12px;bottom:0;width:1.5px;background:var(--border);}
+  .tl-dot{width:9px;height:9px;border-radius:50%;background:var(--accent);margin-top:3px;flex:0 0 9px;z-index:1;}
+  .tl-h{font-size:11px;color:var(--muted);}
+  .tl-status{color:var(--accent);font-weight:600;margin-left:4px;}
+  .tl-b{font-size:12.5px;color:var(--sec);margin-top:2px;white-space:pre-wrap;}
+  .st-row,.st-btn{font-family:inherit;}
+  .st-row{display:flex;gap:6px;flex-wrap:wrap;}
+  .st-btn{border:1px solid var(--border-strong);background:var(--surface1);border-radius:7px;padding:6px 12px;font-size:12px;cursor:pointer;transition:all .12s;}
+  .st-btn:hover{box-shadow:0 2px 8px rgba(0,0,0,0.08);}
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  th{font-weight:400;color:var(--muted);background:var(--surface1);padding:8px;}
+  td{padding:8px;text-align:center;}
+  .tbl-wrap{overflow-x:auto;background:var(--surface2);border:0.5px solid var(--border);border-radius:12px;}
+  .acc{background:var(--accent-bg);} .brd-r{border-right:0.5px solid var(--border);}
+  .pos{color:var(--green);} .neg{color:var(--red);}
+  .total-row{border-top:1.5px solid var(--border-strong);background:var(--surface1);font-weight:600;}
+  .grp-row{border-top:1.5px solid var(--border-strong);background:var(--surface1);font-weight:700;}
+  .foot{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.6;}
+  canvas{max-width:100%;} .legend{display:flex;gap:16px;font-size:11px;color:var(--muted);margin-top:10px;flex-wrap:wrap;}
+  .legend i{display:inline-block;width:14px;height:2px;vertical-align:middle;}
+  .pill{padding:7px 14px;font-size:13px;cursor:pointer;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);}
+  .pill.active{color:var(--ink);font-weight:500;border-bottom-color:var(--accent);}
+  textarea{width:100%;min-height:150px;font-family:var(--num);font-size:12px;padding:10px;border:1px solid var(--border-strong);border-radius:8px;resize:vertical;}
+  .btn{padding:10px 20px;border-radius:8px;font-size:13px;cursor:pointer;border:none;}
+  .btn-primary{background:var(--accent);color:#fff;font-weight:500;}
+  .btn-ghost{background:none;border:0.5px solid var(--border-strong);color:var(--sec);}
+  .status{font-size:13px;padding:10px 14px;border-radius:8px;margin-top:10px;}
+  .status.ok{background:#e8f5ee;color:var(--green);} .status.err{background:#fdecea;color:var(--red);}
+  input[type=text],input[type=number]{padding:8px 12px;border:1px solid var(--border-strong);border-radius:8px;font-size:13px;}
+  /* 캘린더 */
+  .dow{text-align:center;font-size:12px;color:var(--muted);padding:4px 0;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+  .cell{background:var(--surface2);border:0.5px solid var(--border);border-radius:8px;min-height:108px;padding:5px 5px 6px;display:flex;flex-direction:column;position:relative;}
+  .cell.empty{background:transparent;border:none;}
+  .daynum{font-size:11px;color:var(--sec);margin-bottom:4px;font-weight:500;display:flex;justify-content:space-between;align-items:center;}
+  .daynum .wk{color:var(--muted);font-weight:400;}
+  .addbtn{font-size:12px;color:var(--muted);cursor:pointer;border:0.5px solid var(--border);border-radius:5px;width:18px;height:18px;line-height:16px;text-align:center;}
+  .addbtn:hover{color:var(--accent);border-color:var(--accent);}
+  .evt{border-left:3px solid #ccc;border-radius:4px;padding:3px 5px;margin-bottom:3px;background:var(--surface1);font-size:10.5px;line-height:1.25;cursor:pointer;}
+  .evt .t{color:var(--sec);font-size:9.5px;}
+  .evt .nm{color:var(--ink);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .evt .r{font-size:9.5px;margin-top:1px;}
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:200;}
+  .modal{background:var(--surface2);border-radius:14px;padding:22px 24px;width:340px;max-width:92vw;box-shadow:0 12px 48px rgba(0,0,0,0.12);}
+  .modal h3{margin:0 0 14px;font-size:15px;}
+  .modal label{display:block;font-size:12px;color:var(--sec);margin:10px 0 4px;}
+  .modal input,.modal select{width:100%;padding:8px 10px;border:1px solid var(--border-strong);border-radius:8px;font-size:13px;}
+  .modal .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+</style>
 </head>
 <body>
-  <div class="card">
-    <h1>배포 성공!</h1>
-    <p>GitHub Pages로 웹사이트가 정상 작동하고 있습니다.</p>
+
+<div id="gate"><div class="box">
+  <h1>무형상품팀 Co-works</h1>
+  <p>조회 비밀번호를 입력하세요</p>
+  <div class="err" id="gateErr"></div>
+  <input type="password" id="gatePw" placeholder="비밀번호" autocomplete="off">
+  <button onclick="tryLogin()">입장</button>
+</div></div>
+
+<div class="wrap" id="app" style="display:none;">
+  <div class="topbar">
+    <div class="title">무형상품팀 Co-Works</div>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <span class="monthsel" id="monthsel"></span>
+      <span class="asof" id="asof">기준일 —</span>
+      <a href="javascript:void(0)" onclick="openAdmin()" style="font-size:12px;color:var(--muted);text-decoration:none;border:0.5px solid var(--border);padding:4px 10px;border-radius:14px;">⚙ 데이터 입력</a>
+    </div>
   </div>
+  <div class="demo-note">단위: 매출·공헌이익=억원, 보험OB=백만원, 률=% · 공헌이익=매출이익</div>
+  <div class="tabs" id="tabs"></div>
+  <div id="panel"></div>
+</div>
+
+<script>
+/* ============ 로그인 / 권한 ============ */
+var VIEW_PW='2026';   // 조회 비번 (팀 공용)
+var ADMIN_PW='0000';  // 관리자 비번 (입력 권한) — server.py의 ADMIN_PW와 동일해야 함
+var isAdmin=false;
+var ADMIN_SESSION_PW=''; // 서버 저장 시 함께 보낼 관리자 비번
+function tryLogin(){
+  if(document.getElementById('gatePw').value.trim()===VIEW_PW){
+    document.getElementById('gate').style.display='none';
+    document.getElementById('app').style.display='block';
+    boot();
+  }else document.getElementById('gateErr').textContent='비밀번호가 올바르지 않습니다.';
+}
+document.getElementById('gatePw').addEventListener('keydown',e=>{if(e.key==='Enter')tryLogin();});
+// 관리자(입력) 진입
+function openAdmin(){
+  if(!isAdmin){
+    var pw=prompt('관리자(입력) 비밀번호를 입력하세요');
+    if(pw===null) return;
+    if(pw.trim()!==ADMIN_PW){ alert('관리자 비밀번호가 올바르지 않습니다.'); return; }
+    isAdmin=true; ADMIN_SESSION_PW=pw.trim();
+  }
+  active='입력'; render();
+}
+
+/* ============ 유틸 ============ */
+var r1=v=>v==null?null:Math.round(v*10)/10, r2=v=>v==null?null:Math.round(v*100)/100;
+var gc=v=>v>=0?'pos':'neg', gt=v=>(v>=0?'+':'')+v;
+var LIVE='#2a6cd4', ONE='#e0872a', GOAL='#c9342c';
+var charts=[]; function clearCharts(){while(charts.length){try{charts.pop().destroy()}catch(e){}}}
+// 숫자 파싱: "-", "", null → null / "636.7 " → 636.7 / "-76.5" → -76.5
+function pn(s){ if(s==null) return null; s=(''+s).trim().replace(/,/g,''); if(s===''||s==='-'||s==='—') return null; var v=parseFloat(s); return isNaN(v)?null:v; }
+
+/* ============ 파서 ============ */
+// 일일실적(방송+보험OB 통합) 탭구분 텍스트 → {broadcast, ob}
+function parseDaily(text){
+  var lines=text.replace(/\r/g,'').split('\n');
+  var mode=null; // 'broadcast' | 'ob' | 'airtime'
+  var broadcast={}, obCenters=[], obMeta={elapsed:null,total:null};
+  var airtime={};            // 편성시간: {파트:{live:{total,goal,cur,pgoal}, one:{...}}}
+  var curPart=null, curCenter=null, curAirPart=null;
+  for(var i=0;i<lines.length;i++){
+    var raw=lines[i]; var cells=raw.split('\t').map(c=>c.trim());
+    var first=cells[0];
+    // 구역 전환
+    if(/방송\s*편성\s*시간/.test(raw)){ mode='airtime'; continue; }   // 편성시간 먼저 (방송 실적과 구분)
+    if(/방송\s*실적\s*입력/.test(raw)){ mode='broadcast'; continue; }
+    if(/보험OB\s*실적\s*입력/.test(raw)){ mode='ob'; continue; }
+    // 영업일 메타
+    if(/영업일누계/.test(raw)){
+      for(var j=0;j<cells.length;j++){
+        if(/영업일누계/.test(cells[j])) obMeta.elapsed=pn(cells[j+1]);
+        if(/총영업일/.test(cells[j])) obMeta.total=pn(cells[j+1]);
+      }
+      continue;
+    }
+    // 헤더·안내·빈줄 스킵
+    if(/^(파트|센터명|노란|▼|※|구분)/.test(first)) continue;
+    if(cells.length<2) continue;
+
+    if(mode==='broadcast'){
+      var ch=cells[1];
+      if(ch!=='Live'&&ch!=='One') continue;
+      if(first) curPart=first;
+      if(!curPart) continue;
+      var rec={wt:pn(cells[2]), sales:pn(cells[3]), profit:pn(cells[4]), bRate:pn(cells[5])};
+      if(!broadcast[curPart]) broadcast[curPart]={};
+      broadcast[curPart][ch==='Live'?'live':'one']=rec;
+    } else if(mode==='ob'){
+      var gubun=cells[1];
+      if(gubun!=='MMP'&&gubun!=='수수료') continue;
+      if(first) { curCenter=first; obCenters.push({name:first, mmp:null, fee:null}); }
+      var last=obCenters[obCenters.length-1];
+      if(!last) continue;
+      var rec2={cum:pn(cells[2]), today:pn(cells[3]), goal:pn(cells[4]), dayGoal:pn(cells[5])};
+      if(gubun==='MMP') last.mmp=rec2; else last.fee=rec2;
+    } else if(mode==='airtime'){
+      var ach=cells[1];
+      if(ach!=='Live'&&ach!=='One') continue;
+      if(first) curAirPart=first;
+      if(!curAirPart) continue;
+      var arec={total:pn(cells[2]), goal:pn(cells[3]), cur:pn(cells[4]), pgoal:pn(cells[5])};
+      if(!airtime[curAirPart]) airtime[curAirPart]={};
+      airtime[curAirPart][ach==='Live'?'live':'one']=arec;
+    }
+  }
+  return {broadcast:broadcast, ob:{meta:obMeta, centers:obCenters}, airtime:airtime};
+}
+// 목표 텍스트 → {part:{live:{sales,profit,time}, one:{...}}}
+function parseTarget(text){
+  var lines=text.replace(/\r/g,'').split('\n'); var tgt={}, curPart=null;
+  for(var i=0;i<lines.length;i++){
+    var cells=lines[i].split('\t').map(c=>c.trim()); var first=cells[0], ch=cells[1];
+    if(/^(파트|노란|▼|※|월\s*목표)/.test(first)) continue;
+    if(ch!=='Live'&&ch!=='One') continue;
+    if(first) curPart=first;
+    if(!curPart) continue;
+    if(!tgt[curPart]) tgt[curPart]={};
+    tgt[curPart][ch==='Live'?'live':'one']={sales:pn(cells[2]), profit:pn(cells[3]), time:pn(cells[4])};
+  }
+  return tgt;
+}
+// 일별 수수료 텍스트 → {labels:[], values:[]}
+// 기본: 값만 세로로 (10/1부터 1일씩 자동 부여, '-'/빈칸은 건너뜀)
+// startMD: 시작 날짜 '10/1' (기본값). 월은 startMD에서 가져옴.
+function parseObFee(text, startMD){
+  startMD = startMD || '10/1';
+  var mm = parseInt(startMD.split(/[\/\-.]/)[0],10) || 10;
+  var dd = parseInt(startMD.split(/[\/\-.]/)[1],10) || 1;
+  var lines=text.replace(/\r/g,'').split('\n').map(l=>l.trim()).filter(l=>l!=='');
+  // 날짜 구분자는 / 또는 - 만 (소수점 . 은 값이므로 제외)
+  var isDate=s=>/^\d{1,2}[\/\-]\d{1,2}$/.test(s)||/^\d{4}-\d{2}-\d{2}$/.test(s);
+  var labels=[], values=[];
+  // 날짜가 함께 들어온 경우(가로/세로)도 호환 — 날짜 토큰이 있으면 그걸 사용
+  var anyDate = lines.some(l=> l.split('\t').some(isDate));
+  if(anyDate){
+    // 가로형: 날짜줄 + 값줄
+    if(lines.length>=2){
+      var a=lines[0].split('\t').map(s=>s.trim()), b=lines[1].split('\t').map(s=>s.trim());
+      if(a.filter(isDate).length>=2){
+        for(var i=0;i<a.length;i++){ if(isDate(a[i])){ labels.push(a[i]); values.push(pn(b[i])); } }
+        return {labels:labels, values:values};
+      }
+    }
+    // 세로형: 날짜[tab]값
+    for(var j=0;j<lines.length;j++){ var c=lines[j].split('\t').map(s=>s.trim());
+      if(isDate(c[0])){ labels.push(c[0]); values.push(pn(c[1])); } }
+    return {labels:labels, values:values};
+  }
+  // 값만 세로: 10/1부터 하루씩
+  var d=new Date(2026, mm-1, dd);
+  for(var k=0;k<lines.length;k++){
+    var cell=lines[k].split('\t')[0].trim();
+    labels.push((d.getMonth()+1)+'/'+d.getDate());
+    values.push(pn(cell)); // '-'/빈칸 → null
+    d.setDate(d.getDate()+1);
+  }
+  return {labels:labels, values:values};
+}
+
+/* ============ 시드 데이터 (오늘 실제 입력값) ============ */
+var SEED_DAILY=`방송 실적 입력 — 여행 / 렌탈 / 보험방송 (채널별)
+노란 칸에만 숫자 입력 · 단위: 매출·매출이익=억, 가중시간=H · 음수는 - 로
+
+파트 / 채널	구분	가중시간(H)	매출(억)	공헌이익(억)	방송달성률(%)
+▼ 아래 노란 칸을 채우세요
+팀 총계	Live	18	636.7	13	103.1
+	One	26	299.2	4.8	109.7
+여행	Live	18	636.7	13	103.1
+	One	26	299.2	4.8	109.7
+렌탈 계	Live	12.6	118.8	9	106.6
+	One	12.5	15.1	2.1	102.7
+렌탈1	Live	1.7	19.4	1.4	105.3
+	One	3.2	3.6	0.5	96.1
+렌탈2	Live	6.1	59.8	4.3	104.7
+	One	6.3	7.5	1	95.5
+렌탈3	Live	4.8	39.6	3.3	109.7
+	One	3	4	0.6	116.4
+보험IB 계	Live	7.3	145.4	3.9	103.4
+	One	10.3	54.8	4.8	102.9
+보험IB	Live	7.3	145.4	3.9	103.4
+	One	10.3	54.8	4.8	102.9
+매체TV	Live	-	0.7	0.7	100
+	One	-	0.3	0.3	100
+보험OB	Live	-	15.0	6.8	103.4
+	One	-	-	-	102.9
+
+보험OB 실적 입력 — 센터별
+영업일누계	13	총영업일	20
+센터명	구분	누적	당일	목표(누적)
+보험OB 총계	MMP	72.9	5.5	144.5
+	수수료	115.1	9.6	194.8
+라이나생명(창원)	MMP	8.8	0.6	20
+	수수료	6.6	0.4	15
+라이나생명(광주)	MMP	25.8	2	50
+	수수료	19.4	1.5	37.5
+라이나생명(일산)	MMP	6.4	0.5	10
+	수수료	5.4	0.4	8.5
+신한생명(경인)	MMP	8.6	1	15
+	수수료	7.1	0.8	12.5
+신한생명(김포)	MMP	5.4	0.4	10
+	수수료	4.6	0.4	8.5
+DB생명(새내)	MMP	9.5	0.5	25
+	수수료	2.6	0.1	6.9
+AIG(대구)	MMP	6.1	0.3	11
+	수수료	4.3	0.2	7.7
+웅진프리드(상봉)	MMP	2	0.2	3
+	수수료	55.8	5	84.2
+웅진프리드(인천)	MMP	0.3	0	0.5
+	수수료	9.3	0.8	14
+
+방송 편성 시간 현황
+파트 / 채널	구분	총편성	총목표	현재편성	기간목표
+팀 계	Live	51	49	37.9	34.3
+	One	71.3	63	50.9	44.1
+여행	Live	23.1	20	18	14
+	One	40.6	30.6	28.1	21.42
+렌탈	Live	17.7	17.3	12.6	12.11
+	One	16.9	17.5	12.5	12.25
+보험	Live	10.2	11.7	7.3	8.19
+	One	13.8	14.9	10.3	10.43`;
+
+var SEED_TARGET=`파트	채널	매출목표(억)	공헌이익목표(억)	시간목표(H)
+팀 총계	Live	1096.3	42.8	49
+	One	377.3	10.3	63
+여행	Live	746	15.6	20
+	One	302.8	6.3	30.6
+렌탈 계	Live	127.1	10.9	17.3
+	One	15	1.7	17.5
+렌탈1	Live	56.7	4.9	7.7
+	One	6	0.7	7
+렌탈2	Live	26	2.2	3.5
+	One	3.5	0.4	4.1
+렌탈3	Live	44.4	3.8	6.1
+	One	5.5	0.6	6.4
+보험IB 계	Live	202.7	5.9	11.7
+	One	59.5	2.3	14.9
+보험IB	Live	201.5	4.7	11.7
+	One	58.7	1.5	14.9
+매체TV	Live	1.2	1.2	-
+	One	0.8	0.8	-
+보험OB	Live	20.5	10.4	-
+	One	-	-	-`;
+
+/* ============ 상태 (월별) ============ */
+var STATE={ asof:'2026-10-20', daily:null, target:null, trend:null,
+  _targetsMap:{}, _obfeeMap:{}, _obmetaMap:{}, _hasDaily:false };
+var curMonth='2026-10';   // 현재 보고 있는 달 (YYYY-MM)
+
+function isMonth(k){ return /^\d{4}-\d{2}$/.test(k); }
+// 월별 맵에서 'YYYY-MM' 키만 추려냄 (옛 단일구조의 elapsed/total/obFeeText 등 잡음 제거)
+function _validMonths(obj){
+  var out={}; if(obj&&typeof obj==='object'){ Object.keys(obj).forEach(function(k){ if(isMonth(k)) out[k]=obj[k]; }); } return out;
+}
+function _deriveMonth(){
+  var ks=Object.keys(window.__ALL_DAILY||{}).map(function(k){return k.slice(0,7);}).filter(isMonth).sort();
+  return ks.length?ks[ks.length-1]:realMonth();
+}
+function realMonth(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function addMonth(m,delta){ var y=parseInt(m.slice(0,4),10), mo=parseInt(m.slice(5,7),10)-1+delta; var d=new Date(y,mo,1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function monthLabel(m){ return m.slice(0,4)+'년 '+parseInt(m.slice(5,7),10)+'월'; }
+function monthNum(m){ return parseInt(m.slice(5,7),10); }
+
+// 선택한 달의 데이터를 STATE에 적용 (데이터 없으면 '입력 대기' 빈 상태)
+function applyMonth(m){
+  curMonth=m;
+  var all=window.__ALL_DAILY||{};
+  var keys=Object.keys(all).filter(function(k){return k.slice(0,7)===m;}).sort();
+  if(keys.length){
+    var latest=keys[keys.length-1];
+    STATE.daily=parseDaily(all[latest].dailyText||'');
+    STATE.asof=all[latest].asof||latest; STATE._hasDaily=true;
+  } else {
+    STATE.daily=parseDaily('');
+    STATE.asof=monthLabel(m)+' · 입력 대기'; STATE._hasDaily=false;
+  }
+  var tm=(STATE._targetsMap||{})[m];
+  STATE._targetText = (tm&&tm.targetText) ? tm.targetText : '';
+  STATE.target = STATE._targetText ? parseTarget(STATE._targetText) : null;
+  var ofm=(STATE._obfeeMap||{})[m];
+  if(ofm&&ofm.obFeeText){ STATE._obFeeText=ofm.obFeeText; STATE._obStart=ofm.obStart||(monthNum(m)+'/1'); STATE.obFee=parseObFee(STATE._obFeeText, STATE._obStart); }
+  else { STATE._obFeeText=''; STATE._obStart=monthNum(m)+'/1'; STATE.obFee=null; }
+  var omm=(STATE._obmetaMap||{})[m];
+  STATE.obMeta = omm ? {elapsed:(omm.elapsed==null?null:omm.elapsed), total:(omm.total==null?null:omm.total)} : {elapsed:null,total:null};
+  STATE.trend=buildTrend(STATE.daily);
+  // 방송편성/팀스케줄 달력도 선택 달로 동기화
+  var y=parseInt(m.slice(0,4),10), mo=monthNum(m);
+  if(typeof calYM!=='undefined'&&calYM){ calYM.y=y; calYM.m=mo; }
+  if(typeof schYM!=='undefined'&&schYM){ schYM.y=y; schYM.m=mo; }
+}
+
+// 선택 가능한 달 목록 (데이터 있는 달 ∪ 이번달 ∪ 다음달(미리 셋업) ∪ 현재선택)
+function knownMonths(){
+  var s={};
+  Object.keys(window.__ALL_DAILY||{}).forEach(function(k){ s[k.slice(0,7)]=1; });
+  Object.keys(STATE._targetsMap||{}).forEach(function(k){ s[k]=1; });
+  Object.keys(STATE._obfeeMap||{}).forEach(function(k){ s[k]=1; });
+  Object.keys(STATE._obmetaMap||{}).forEach(function(k){ s[k]=1; });
+  (STATE.broadcasts||[]).forEach(function(b){ if(b.date) s[b.date.slice(0,7)]=1; });
+  (STATE.schedules||[]).forEach(function(x){ if(x.date) s[x.date.slice(0,7)]=1; });
+  s[realMonth()]=1; s[addMonth(realMonth(),1)]=1; s[curMonth]=1;
+  return Object.keys(s).filter(isMonth).sort();   // 'YYYY-MM' 형태만
+}
+function monthSelHtml(){
+  var opts=knownMonths().map(function(m){
+    return '<option value="'+m+'"'+(m===curMonth?' selected':'')+'>'+monthLabel(m)+'</option>';
+  }).join('');
+  return '<button class="mbtn" onclick="shiftMonth(-1)" title="이전 달">‹</button>'+
+    '<select class="msel" onchange="goMonth(this.value)">'+opts+'</select>'+
+    '<button class="mbtn" onclick="shiftMonth(1)" title="다음 달">›</button>';
+}
+function goMonth(m){ applyMonth(m); render(); }
+function shiftMonth(delta){ goMonth(addMonth(curMonth,delta)); }
+
+// 시드(서버 미연결/파일 직접 열기) 전용 — 10월 예시를 월별 맵 형태로 적재
+function applyData(dailyText, targetText, asof){
+  window.__ALL_DAILY={}; window.__ALL_DAILY[asof]={dailyText:dailyText, asof:asof};
+  window.__ALL_DATES=[asof];
+  STATE._targetsMap={}; STATE._targetsMap[asof.slice(0,7)]={targetText:targetText};
+  STATE._obfeeMap={}; STATE._obmetaMap={};
+  applyMonth(asof.slice(0,7));
+}
+
+// 10월 가상 추이: 마지막(오늘) 값에 수렴하도록 역산 (데모용, 추후 실제 누적으로 대체)
+var TDAYS=['10/1','10/2','10/6','10/7','10/8','10/13','10/14','10/15','10/16','10/17','10/20'];
+function buildTrend(daily){
+  function seedTo(endVal,amp){ // endVal에 수렴하는 가상 시계열
+    return TDAYS.map((d,i)=>{ var t=i/(TDAYS.length-1); var base=endVal*(0.9+0.1*t); return Math.round((base+(Math.random()*amp-amp/2))*10)/10; });
+  }
+  var out={};
+  ['여행','렌탈 계','보험IB 계'].forEach(p=>{
+    var b=daily.broadcast[p];
+    if(b&&b.live) out[p+'_live']=seedTo(b.live.bRate||100,8);
+    if(b&&b.one) out[p+'_one']=seedTo(b.one.bRate||100,8);
+  });
+  // 팀 달성률 추이 (가상)
+  out['팀_live']=seedTo((daily.broadcast['팀 총계']&&daily.broadcast['팀 총계'].live.bRate)||103,6);
+  out['팀_one']=seedTo((daily.broadcast['팀 총계']&&daily.broadcast['팀 총계'].one.bRate)||109,6);
+  // 보험OB 일별 수수료 (가상, 누적증가분 흉내)
+  out['ob_fee']=TDAYS.map(()=>Math.round((6+Math.random()*6)*10)/10);
+  return out;
+}
+
+/* ============ 탭 ============ */
+// 2단계 탭: 상단(메인/일일실적/방송편성/팀스케줄) + 일일실적 하위(팀/여행/렌탈/보험방송/보험OB/목표)
+var DAILY_SUBS=['전체','여행','렌탈','보험방송','보험OB','목표'];  // 내부 키
+var SUBLABEL={'전체':'팀'};                                      // 표시 라벨(없으면 키 그대로)
+var active='홈';
+var lastDailySub='전체';
+function inDaily(k){ return DAILY_SUBS.indexOf(k)>=0; }
+function subLabel(k){ return SUBLABEL[k]||k; }
+function tabsHtml(){
+  var top=[
+    {key:'홈', label:'메인'},
+    {key:'__daily', label:'일일실적'},
+    {key:'방송캘린더', label:'방송편성'},
+    {key:'팀스케줄', label:'팀스케줄'}
+  ];
+  var h='<div class="tab-row">'+top.map(function(t){
+    var act = t.key==='__daily' ? inDaily(active) : (active===t.key);
+    var oc  = t.key==='__daily' ? "go('"+lastDailySub+"')" : "go('"+t.key+"')";
+    return '<button class="tab'+(act?' active':'')+'" onclick="'+oc+'">'+t.label+'</button>';
+  }).join('')+'</div>';
+  if(inDaily(active)){
+    h+='<div class="subtab-row">'+DAILY_SUBS.map(function(k){
+      return '<button class="subtab'+(k===active?' active':'')+'" onclick="go(\''+k+'\')">'+subLabel(k)+'</button>';
+    }).join('')+'</div>';
+  }
+  return h;
+}
+function boot(){
+  // 서버에서 저장된 데이터를 불러옴. 실패(파일로 직접 열기 등)하면 시드 데이터로.
+  fetch('/api/data',{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){
+    window.__ALL_DAILY = (d && d.daily) ? d.daily : {};
+    window.__ALL_DATES = Object.keys(window.__ALL_DAILY).sort();
+    // 월별 맵 로드 (옛 서버의 '단일' 구조도 자동 보정 — 서버 재시작 전에도 화면 정상)
+    var dm=_deriveMonth();
+    var tmap=_validMonths(d && d.targets);
+    if(d && d.target && d.target.targetText && !tmap[dm]) tmap[dm]={targetText:d.target.targetText};
+    STATE._targetsMap=tmap;
+    var ofmap=_validMonths(d && d.obfee);
+    if(d && d.obfee && d.obfee.obFeeText && !ofmap[dm]) ofmap[dm]={obFeeText:d.obfee.obFeeText, obStart:d.obfee.obStart||(monthNum(dm)+'/1')};
+    STATE._obfeeMap=ofmap;
+    var ommap=_validMonths(d && d.obmeta);
+    if(d && d.obmeta && (d.obmeta.elapsed!=null||d.obmeta.total!=null) && !ommap[dm]) ommap[dm]={elapsed:d.obmeta.elapsed, total:d.obmeta.total};
+    STATE._obmetaMap=ommap;
+    STATE.broadcasts = (d && d.broadcasts) ? d.broadcasts : [];
+    STATE.schedules  = (d && d.schedules)  ? d.schedules  : [];
+    STATE.notices = (d && d.notices) ? d.notices : [];
+    STATE.sodam   = (d && d.sodam)   ? d.sodam   : [];
+    STATE.workflow= (d && d.workflow)? d.workflow: [];
+    STATE.loaded = true;   // 서버에서 정상 로드됨 → 저장 허용
+    applyMonth(realMonth());   // 기본 = 실제 현재 월 (데이터 없으면 '입력 대기')
+    render();
+  }).catch(function(){
+    // 서버에 연결 실패 (서버 꺼짐, 또는 파일로 직접 열림) → 10월 시드로 미리보기
+    STATE.broadcasts=STATE.broadcasts||[]; STATE.schedules=STATE.schedules||[];
+    STATE.notices=seedNotices(); STATE.sodam=seedSodam(); STATE.workflow=seedWorkflow();
+    STATE.loaded = false;  // 로드 실패 → 덮어쓰기 위험 있어 저장 차단
+    applyData(SEED_DAILY, SEED_TARGET, '2026-10-20'); render();
+  });
+}
+function go(t){ active=t; if(inDaily(t)) lastDailySub=t; render(); }
+function render(){
+  clearCharts();
+  var msel=document.getElementById('monthsel'); if(msel) msel.innerHTML=monthSelHtml();
+  document.getElementById('asof').textContent = STATE._hasDaily ? ('기준일 '+STATE.asof+' · 월 누계') : STATE.asof;
+  document.getElementById('tabs').innerHTML=tabsHtml();
+  var p=document.getElementById('panel');
+  if(active==='입력'){ if(!isAdmin){ active='전체'; } else return renderInput(p); }
+  if(active==='홈') return renderHome(p);
+  if(active==='전체') return renderOverview(p);
+  if(active==='보험OB') return renderOB(p);
+  if(active==='방송캘린더') return renderCalendar(p);
+  if(active==='팀스케줄') return renderSchedule(p);
+  if(active==='목표') return renderTarget(p);
+  renderBroadcast(p,active);
+}
+
+/* ---- 입력 탭 ---- */
+function renderInput(p){
+  p.innerHTML=
+  '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><div class="sec-title" style="margin:0;">데이터 입력 <span class="mut">· 관리자 전용</span></div>'+
+  '<a href="javascript:void(0)" onclick="go(\'전체\')" style="font-size:12px;color:var(--muted);">← 대시보드로</a></div>'+
+  '<div class="demo-note">엑셀에서 긁어(Ctrl+A→Ctrl+C) 아래 칸에 붙여넣기(Ctrl+V) 후 반영. 같은 기준일로 다시 넣으면 그 날짜가 덮어써집니다.</div>'+
+  '<div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">'+
+    '<span style="font-size:13px;color:var(--sec);">기준일</span>'+
+    '<input type="text" id="inAsof" value="'+(STATE._hasDaily?STATE.asof:curMonth+'-01')+'" style="width:140px;">'+
+    '<span style="font-size:12px;color:var(--muted);">· 입력 대상 월: <b>'+monthLabel(curMonth)+'</b> (기준일의 월로 저장)</span>'+
+  '</div>'+
+  '<div class="sec-title">① 일일 실적 <span class="mut">· 방송실적 + 보험OB 통합 시트를 통째로 붙여넣기</span></div>'+
+  '<textarea id="inDaily" placeholder="엑셀의 일일실적 시트 전체를 붙여넣으세요"></textarea>'+
+  '<div class="sec-title" style="margin-top:18px;">② 월 목표 <span class="mut">· 월초 1회만. 안 바뀌면 비워두면 기존 목표 유지</span></div>'+
+  '<textarea id="inTarget" placeholder="엑셀의 목표 시트 전체를 붙여넣으세요 (선택)"></textarea>'+
+  '<div class="sec-title" style="margin-top:18px;">③ 보험OB 영업일 <span class="mut">· 일별 목표·진도율 계산 기준. 월초/수시로 갱신</span></div>'+
+  '<div style="display:flex;gap:16px;align-items:center;margin-bottom:4px;">'+
+  '<span style="font-size:12px;color:var(--sec);">경과영업일</span><input type="number" id="inWdElapsed" value="'+((STATE.obMeta&&STATE.obMeta.elapsed!=null)?STATE.obMeta.elapsed:'')+'" style="width:70px;" placeholder="13">'+
+  '<span style="font-size:12px;color:var(--sec);">총영업일</span><input type="number" id="inWdTotal" value="'+((STATE.obMeta&&STATE.obMeta.total!=null)?STATE.obMeta.total:'')+'" style="width:70px;" placeholder="20"></div>'+
+  '<div style="display:flex;gap:10px;margin-top:20px;">'+
+    '<button class="btn btn-primary" onclick="doApply()">반영 → 대시보드 갱신</button>'+
+    '<button class="btn btn-ghost" onclick="fillSeed()">현재 데이터 불러오기(편집용)</button>'+
+  '</div>'+
+  '<div id="inStatus"></div>'+
+  '<div class="foot" style="margin-top:20px;">※ 반영하면 서버에 <b>날짜별로 저장</b>되어 팀 전원이 같은 데이터를 봅니다. 같은 기준일로 다시 넣으면 그 날짜만 교체됩니다.<br>※ <b>보험OB 일별 수수료 그래프</b>는 매일 올린 일일실적의 ‘보험OB 총계 당일 수수료’로 <b>자동 집계</b>됩니다(별도 입력 불필요).<br>※ 머리줄(방송 실적 입력 —, 보험OB 실적 입력 —)로 구역을 자동 구분합니다.</div>';
+}
+function fillSeed(){
+  var dates=window.__ALL_DATES||[];
+  if(dates.length && window.__ALL_DAILY){
+    var latest=dates[dates.length-1];
+    document.getElementById('inDaily').value=window.__ALL_DAILY[latest].dailyText||SEED_DAILY;
+  } else document.getElementById('inDaily').value=SEED_DAILY;
+  document.getElementById('inTarget').value=(STATE._targetText||SEED_TARGET);
+}
+function doApply(){
+  var d=document.getElementById('inDaily').value.trim();
+  var t=document.getElementById('inTarget').value.trim();
+  var wdE=pnum('inWdElapsed'), wdT=pnum('inWdTotal');
+  var asof=document.getElementById('inAsof').value.trim();
+  var st=document.getElementById('inStatus');
+  if(!d){ st.innerHTML='<div class="status err">일일 실적 칸이 비어 있습니다. 엑셀에서 긁어 붙여넣어 주세요.</div>'; return; }
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(asof)){ st.innerHTML='<div class="status err">기준일을 YYYY-MM-DD 형식으로 입력하세요 (예: 2026-11-03).</div>'; return; }
+  var mth=asof.slice(0,7);   // 이 입력이 저장될 월
+  var parsed;
+  try{ parsed=parseDaily(d); }
+  catch(e){ st.innerHTML='<div class="status err">형식 처리 오류: '+e.message+'</div>'; return; }
+  var nParts=Object.keys(parsed.broadcast).length, nCenters=parsed.ob.centers.length;
+  if(nParts===0){ st.innerHTML='<div class="status err">방송 실적을 인식하지 못했습니다. 머리줄(방송 실적 입력 —)이 포함됐는지 확인하세요.</div>'; return; }
+  if(!confirm('['+asof+'] ('+monthLabel(mth)+') 데이터를 저장합니다.\n같은 날짜 데이터가 있으면 교체됩니다. 진행할까요?')) { st.innerHTML='<div class="status">취소됨.</div>'; return; }
+  st.innerHTML='<div class="status">저장 중…</div>';
+  saveToServer({kind:'daily', asof:asof, dailyText:d}, function(ok,msg){
+    if(!ok){ st.innerHTML='<div class="status err">저장 실패: '+msg+'</div>'; return; }
+    function finish(){
+      // 로컬 맵 갱신 후, 입력한 '월'로 전환해 전체 재적용
+      window.__ALL_DAILY=window.__ALL_DAILY||{};
+      window.__ALL_DAILY[asof]={dailyText:d, asof:asof};
+      window.__ALL_DATES=Object.keys(window.__ALL_DAILY).sort();
+      if(t){ STATE._targetsMap[mth]={targetText:t}; }
+      STATE._obmetaMap[mth]={elapsed:wdE, total:wdT};
+      applyMonth(mth);
+      st.innerHTML='<div class="status ok">저장됨 ('+monthLabel(mth)+') · 방송 '+nParts+'개 파트, 보험OB '+nCenters+'개 센터. 일별 수수료 그래프는 이 날짜 기준으로 자동 반영됩니다.</div>';
+    }
+    function afterTarget(){
+      // 영업일(경과/총)을 해당 월에 저장 → 완료
+      saveToServer({kind:'obmeta', month:mth, elapsed:wdE, total:wdT}, function(okm){ finish(); });
+    }
+    if(t){ saveToServer({kind:'target', month:mth, targetText:t}, function(ok2,msg2){ if(!ok2){ st.innerHTML='<div class="status err">목표 저장 실패: '+msg2+'</div>'; return;} afterTarget(); }); }
+    else afterTarget();
+  });
+}
+function saveToServer(payload, cb){
+  payload.admin_pw=ADMIN_SESSION_PW;
+  fetch('/api/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+    .then(function(r){return r.json().then(function(j){return {status:r.status,j:j};});})
+    .then(function(res){ if(res.j && res.j.ok) cb(true); else cb(false,(res.j&&res.j.error)||('HTTP '+res.status)); })
+    .catch(function(){ cb(false, '서버에 연결하지 못했습니다. 서버(검은 창)가 켜져 있는지 확인하세요.'); });
+}
+
+/* ---- 공통 헬퍼 ---- */
+function fmt(v,suf){ return v==null?'—':(v+(suf||'')); }
+function kv(k,v,color){return '<div><div class="k">'+k+'</div><div class="big" style="color:'+(color||'var(--ink)')+';">'+v+'</div></div>';}
+// 방송달성률 표시: 100%미만 빨강, 80%미만 앞에 ⚠
+function brateHtml(v,big){
+  if(v==null) return '<span class="mut">—</span>';
+  var col = v<100 ? 'var(--red)' : 'var(--ink)';
+  var warn = v<80 ? '<span style="color:var(--red);">⚠ </span>' : '';
+  return warn+'<span style="color:'+col+';">'+v+'%</span>';
+}
+// 핵심지표 하단 작은 줄: 사업목표 + 진척률(실적/목표)
+function progSub(actual, target, unit){
+  if(target==null) return '';
+  var p = (actual!=null && target) ? Math.round(actual/target*100) : null;
+  var col = p==null ? 'var(--muted)' : (p<80?'var(--red)':'var(--muted)');
+  return '<div style="font-size:10px;color:var(--muted);margin-top:2px;white-space:nowrap;">사업목표 '+fmt(target,unit||'')+' / <span style="color:'+col+';">진척률 '+(p==null?'—':p+'%')+'</span></div>';
+}
+// 지표 셀 (값 + 목표/진척 하단줄)
+function metricCell(label, val, tgt, unit, big){
+  return '<div><div class="k">'+label+'</div>'+
+    '<div class="num" style="font-size:'+(big?24:21)+'px;">'+fmt(val,unit||'')+'</div>'+
+    progSub(val, tgt, unit)+'</div>';
+}
+function legend(){return '<div class="legend"><span><i style="background:'+LIVE+';"></i> Live TV</span><span><i style="background:'+ONE+';"></i> One TV</span><span><i style="border-top:1px dashed '+GOAL+';height:0;"></i> 목표 100%</span></div>';}
+function ds(label,data,color,w,dash){return {label:label,data:data,borderColor:color,borderWidth:w,borderDash:dash?[3,3]:[],tension:0.3,pointRadius:0,fill:false};}
+function lineCfg(datasets,min,max,small){return {type:'line',data:{labels:TDAYS,datasets:datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false}},scales:{y:{suggestedMin:min,suggestedMax:max,grid:{color:'#e1e0d9'},ticks:{color:'#908e86',font:{size:small?9:11},callback:v=>v+'%'}},x:{grid:{display:false},ticks:{color:'#908e86',font:{size:small?9:11},autoSkip:small,maxTicksLimit:small?5:11,maxRotation:45}}}}};}
+
+/* ===================== 홈 탭 ===================== */
+// 상단 요약 카드 1장
+function statCard(label, bigHtml, subHtml, accent){
+  return '<div class="stat-card"'+(accent?' style="border-top:3px solid '+accent+';"':'')+'>'+
+    '<div class="stat-k">'+label+'</div>'+
+    '<div class="stat-big">'+bigHtml+'</div>'+
+    '<div class="stat-sub">'+(subHtml||'')+'</div></div>';
+}
+// 공헌이익/이익 카드용 하단줄: 사업목표 + 진척률
+function homeProgSub(actual, target){
+  if(target==null) return '<span class="mut">목표 미등록</span>';
+  var p=(actual!=null&&target)?Math.round(actual/target*100):null;
+  var col=(p!=null&&p<80)?'var(--red)':'var(--muted)';
+  return '목표 '+fmt(target)+' · <span style="color:'+col+';">진척 '+(p==null?'—':p+'%')+'</span>';
+}
+// 편성시간 카드용 하단줄: 목표시간 + 확보율
+function airSub(a){
+  if(!a) return '<span class="mut">데이터 없음</span>';
+  var rate=(a.total!=null&&a.goal)?Math.round(a.total/a.goal*100):null;
+  var col=(rate!=null&&rate<100)?'var(--red)':'var(--muted)';
+  return '목표 '+fmt(a.goal,'H')+' · <span style="color:'+col+';">확보 '+(rate==null?'—':rate+'%')+'</span>';
+}
+function todayStr(){
+  var d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function renderHome(p){
+  var B=STATE.daily.broadcast;
+  var A=STATE.daily.airtime||{};
+  var team=B['팀 총계']||{live:{},one:{}};
+  var TT=(STATE.target&&STATE.target['팀 총계'])||{live:{},one:{}};
+  // 보험OB 진도율
+  var ob=STATE.daily.ob;
+  var obTotal=ob.centers.find(function(c){return /총계/.test(c.name);})||{fee:{}};
+  var feeC=obTotal.fee||{};
+  var obProg=(feeC.cum!=null&&feeC.goal)?r1(feeC.cum/feeC.goal*100):null;
+  // 매체TV 이익 (Live+One 합산)
+  var mt=B['매체TV']||{live:{},one:{}};
+  var mtProfit=r1((mt.live&&mt.live.profit||0)+(mt.one&&mt.one.profit||0));
+  var mtTT=(STATE.target&&STATE.target['매체TV'])||{live:{},one:{}};
+  var mtTgt=((mtTT.live&&mtTT.live.profit)!=null||(mtTT.one&&mtTT.one.profit)!=null)
+    ? r1((mtTT.live&&mtTT.live.profit||0)+(mtTT.one&&mtTT.one.profit||0)) : null;
+  // 오늘 편성 건수 (캘린더 등록분, Live+One)
+  var td=todayStr();
+  var todayCnt=bList().filter(function(b){return b.date===td;}).length;
+  var air=A['팀 계']||{};
+
+  var cards=[
+    statCard('Live 공헌이익',
+      '<span class="acc">'+fmt(team.live&&team.live.profit)+'</span>',
+      homeProgSub(team.live&&team.live.profit, TT.live&&TT.live.profit), LIVE),
+    statCard('One 공헌이익',
+      '<span class="acc">'+fmt(team.one&&team.one.profit)+'</span>',
+      homeProgSub(team.one&&team.one.profit, TT.one&&TT.one.profit), ONE),
+    statCard('매체TV 이익',
+      '<span class="acc">'+fmt(mtProfit)+'</span>',
+      homeProgSub(mtProfit, mtTgt), '#9b6dd4'),
+    statCard('방송달성률',
+      brateHtml(team.live&&team.live.bRate),
+      '팀 전체 · Live 기준', '#d9a300'),
+    statCard('Live 편성시간',
+      fmt(air.live&&air.live.total,'H'), airSub(air.live), LIVE),
+    statCard('One 편성시간',
+      fmt(air.one&&air.one.total,'H'), airSub(air.one), ONE),
+    statCard('보험OB 진도율',
+      fmt(obProg,'%'),
+      '누적 수수료 '+fmt(feeC.cum)+' / 목표 '+fmt(feeC.goal), '#1f9d6b'),
+    statCard('오늘 편성',
+      todayCnt+'<span style="font-size:14px;color:var(--muted);"> 건</span>',
+      td.slice(5).replace('-','/')+' 방송캘린더 등록분', '#c56b6b')
+  ];
+
+  var html='';
+  if(!STATE._hasDaily){
+    html+='<div class="empty-banner">📭 <b>'+monthLabel(curMonth)+'</b> 실적 데이터가 아직 없습니다. 상단 <b>⚙ 데이터 입력</b>에서 이 달 실적을 넣으면 카드가 채워집니다. (목표·방송편성·팀스케줄은 미리 셋업 가능)</div>';
+  }
+  html+='<div class="sec-title" style="margin-top:2px;">팀 현황 <span class="mut">· '+(STATE._hasDaily?('기준일 '+STATE.asof+' · 월 누계'):monthLabel(curMonth))+'</span></div>'+
+    '<div class="stat-grid">'+cards.join('')+'</div>';
+
+  // (다음 단계) 공지/소담 · 워크플로우 현황판 영역
+  html+='<div id="homeBoards" style="margin-top:22px;"></div>';
+  p.innerHTML=html;
+  renderBoards();
+}
+/* ===== 홈: 공지/소담 게시판 + 워크플로우 현황판 ===== */
+var WF_COLS=['검토','진행예정','진행중','완료'];
+var WF_COL_COLOR={'검토':'#8a877f','진행예정':'#2a6cd4','진행중':'#1f9d6b','완료':'#6f6c64'};
+var WF_PART_COLOR={'공통':'#9b6dd4','여행':'#2a6cd4','렌탈':'#1f9d6b','보험방송':'#d08a00','보험IB':'#d08a00','보험OB':'#cf6a2a','보험':'#d08a00','기타':'#8a877f'};
+var BOARD_MAX=3;                    // 게시판 미리보기 노출 개수(나머지는 전체보기 팝업)
+function esc(s){ return (s==null?'':(''+s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function nid(pfx){ return pfx+Date.now()+Math.floor(Math.random()*1000); }
+function noticeList(){ return STATE.notices||[]; }
+function sodamList(){ return STATE.sodam||[]; }
+function wfList(){ return STATE.workflow||[]; }
+function relTime(ts){
+  if(!ts) return '';
+  var diff=Date.now()-ts; if(diff<0) diff=0;
+  var m=Math.floor(diff/60000);
+  if(m<1) return '방금';
+  if(m<60) return m+'분 전';
+  var h=Math.floor(m/60);
+  if(h<24) return h+'시간 전';
+  var d=new Date(ts);
+  return (d.getMonth()+1)+'/'+d.getDate();
+}
+function partTag(part){
+  var c=WF_PART_COLOR[part]||WF_PART_COLOR['기타'];
+  return '<span class="wf-part" style="color:'+c+';background:'+c+'1a;">'+esc(part||'기타')+'</span>';
+}
+
+function renderBoards(){
+  var el=document.getElementById('homeBoards'); if(!el) return;
+  var html='';
+  // ── 공지 + 소담 2분할 ──
+  html+='<div class="board-split">';
+  html+='<div class="board">'+
+    '<div class="board-head"><div class="board-title">📢 공지사항 <span class="mut">· 공식</span></div>'+
+    '<a class="board-add" onclick="openNoticeModal(null)">+ 새 공지 등록하기</a></div>'+
+    '<div class="board-body">';
+  var ns=noticeList().slice().sort(function(a,b){return (b.pin?1:0)-(a.pin?1:0) || (b.ts||0)-(a.ts||0);});
+  if(!ns.length) html+='<div class="board-empty">등록된 공지가 없습니다.</div>';
+  ns.slice(0, BOARD_MAX).forEach(function(n){
+    html+='<div class="notice-item" onclick="openNoticeDetail(\''+n.id+'\')">'+
+      '<div class="notice-t">'+(n.pin?'📌 ':'')+esc(n.title)+'</div>'+
+      '<div class="notice-b">'+(n.body?esc(n.body):'')+'</div>'+
+      '<div class="notice-m">'+esc(n.author||'')+' · '+esc(n.date||relTime(n.ts))+'</div></div>';
+  });
+  if(ns.length>BOARD_MAX) html+='<a class="board-more" onclick="openNoticeArchive()">+ 전체 '+ns.length+'개 보기 ↗</a>';
+  html+='</div></div>';
+  html+='<div class="board">'+
+    '<div class="board-head"><div class="board-title">💬 소담 <span class="mut">· 笑談 · 팀 자유게시판</span></div>'+
+    '<a class="board-add" onclick="openSodamModal(null)">+ 글쓰기</a></div>'+
+    '<div class="board-body">';
+  var ss=sodamList().slice().sort(function(a,b){return (b.ts||0)-(a.ts||0);});
+  if(!ss.length) html+='<div class="board-empty">첫 글을 남겨보세요 🙂</div>';
+  ss.slice(0, BOARD_MAX).forEach(function(s){
+    var cc=(s.comments||[]).length;
+    html+='<div class="sodam-item" onclick="openSodamDetail(\''+s.id+'\')">'+
+      '<div class="sodam-t">'+esc(s.title)+'</div>'+
+      '<div class="sodam-m">'+esc(s.author||'')+' · '+relTime(s.ts)+(cc?' · 💬 '+cc:'')+'</div></div>';
+  });
+  if(ss.length>BOARD_MAX) html+='<a class="board-more" onclick="openSodamArchive()">+ 전체 '+ss.length+'개 보기 ↗</a>';
+  html+='</div></div>';
+  html+='</div>';
+
+  // ── 워크플로우 현황판 ──
+  html+='<div class="board-head" style="margin-top:24px;"><div class="board-title">🗂 무형상품팀 워크플로우 현황판 '+
+    '<span class="mut">· 검토 → 진행예정 → 진행중 → 완료</span></div>'+
+    '<a class="board-add" onclick="openWfModal(null)">+ 신규 업무 등록하기</a></div>';
+  html+='<div class="kanban">';
+  WF_COLS.forEach(function(col){
+    var items=wfList().filter(function(w){return w.status===col;});
+    html+='<div class="kan-col">'+
+      '<div class="kan-head" style="color:'+WF_COL_COLOR[col]+';">'+col+' <span class="kan-cnt">'+items.length+'</span></div>'+
+      '<div class="kan-body">';
+    items.forEach(function(w){
+      html+='<div class="kan-card" style="border-left-color:'+(WF_PART_COLOR[w.part]||WF_PART_COLOR['기타'])+';" onclick="openWfDetail(\''+w.id+'\')">'+
+        '<div class="kan-t">'+esc(w.title)+(((w.memos||[]).length)?' <span class="mut" style="font-size:10px;">💬'+w.memos.length+'</span>':'')+'</div>'+
+        '<div class="kan-meta">'+partTag(w.part)+'<span class="kan-owner">'+esc(w.owner||'')+'</span></div></div>';
+    });
+    if(!items.length) html+='<div class="kan-empty"></div>';
+    html+='</div></div>';
+  });
+  html+='</div>';
+  html+='<div class="foot" style="margin-top:8px;">※ 카드 클릭 → 진행 메모 추가 · 상태 변경(변경 시 해당 칸으로 자동 이동)</div>';
+  el.innerHTML=html;
+}
+
+/* ---- 전체보기 팝업(아카이브) ---- */
+function openNoticeArchive(){
+  closeModal('ntArchive');
+  var ns=noticeList().slice().sort(function(a,b){return (b.pin?1:0)-(a.pin?1:0) || (b.ts||0)-(a.ts||0);});
+  var rows=ns.map(function(n){
+    return '<div class="arc-item" onclick="closeModal(\'ntArchive\');openNoticeDetail(\''+n.id+'\')">'+
+      '<div class="arc-t">'+(n.pin?'📌 ':'')+esc(n.title)+'</div>'+
+      (n.body?'<div class="arc-b">'+esc(n.body)+'</div>':'')+
+      '<div class="arc-m">'+esc(n.author||'')+' · '+esc(n.date||relTime(n.ts))+'</div></div>';
+  }).join('') || '<div class="board-empty">등록된 공지가 없습니다.</div>';
+  var bg=document.createElement('div'); bg.className='modal-bg'; bg.id='ntArchive';
+  bg.innerHTML='<div class="modal modal-lg"><h3>📢 공지사항 전체 <span class="mut" style="font-size:12px;font-weight:400;">· '+ns.length+'건</span></h3>'+
+    '<div class="arc-list">'+rows+'</div>'+
+    '<div class="modal-foot"><a class="board-add" onclick="closeModal(\'ntArchive\');openNoticeModal(null)">+ 새 공지 등록</a>'+
+    '<button class="btn btn-primary" onclick="closeModal(\'ntArchive\')">닫기</button></div></div>';
+  bg.addEventListener('click',function(e){ if(e.target===bg) closeModal('ntArchive'); });
+  document.body.appendChild(bg);
+}
+function openSodamArchive(){
+  closeModal('sdArchive');
+  var ss=sodamList().slice().sort(function(a,b){return (b.ts||0)-(a.ts||0);});
+  var rows=ss.map(function(s){
+    var cc=(s.comments||[]).length;
+    return '<div class="arc-item" onclick="closeModal(\'sdArchive\');openSodamDetail(\''+s.id+'\')">'+
+      '<div class="arc-t">'+esc(s.title)+'</div>'+
+      '<div class="arc-m">'+esc(s.author||'')+' · '+relTime(s.ts)+(cc?' · 💬 '+cc:'')+'</div></div>';
+  }).join('') || '<div class="board-empty">아직 글이 없습니다.</div>';
+  var bg=document.createElement('div'); bg.className='modal-bg'; bg.id='sdArchive';
+  bg.innerHTML='<div class="modal modal-lg"><h3>💬 소담 전체 <span class="mut" style="font-size:12px;font-weight:400;">· '+ss.length+'건</span></h3>'+
+    '<div class="arc-list">'+rows+'</div>'+
+    '<div class="modal-foot"><a class="board-add" onclick="closeModal(\'sdArchive\');openSodamModal(null)">+ 글쓰기</a>'+
+    '<button class="btn btn-primary" onclick="closeModal(\'sdArchive\')">닫기</button></div></div>';
+  bg.addEventListener('click',function(e){ if(e.target===bg) closeModal('sdArchive'); });
+  document.body.appendChild(bg);
+}
+
+/* ---- 공지 상세(읽기) ---- */
+function openNoticeDetail(id){
+  closeModal('ntDetail');
+  var n=noticeList().find(function(x){return x.id===id;}); if(!n) return;
+  var bg=document.createElement('div'); bg.className='modal-bg'; bg.id='ntDetail';
+  bg.innerHTML='<div class="modal"><h3>'+(n.pin?'📌 ':'')+esc(n.title)+'</h3>'+
+    '<div class="mut" style="font-size:12px;margin:-4px 0 12px;">'+esc(n.author||'')+' · '+esc(n.date||relTime(n.ts))+'</div>'+
+    (n.body?'<div class="detail-body">'+esc(n.body)+'</div>':'<div class="mut" style="font-size:13px;">(본문 없음 — 제목 공지)</div>')+
+    '<div class="modal-foot"><button class="btn btn-ghost" style="color:var(--red);border-color:var(--red);" onclick="deleteNotice(\''+n.id+'\')">삭제</button>'+
+    '<div style="display:flex;gap:8px;"><button class="btn btn-ghost" onclick="openNoticeModal(\''+n.id+'\')">수정</button>'+
+    '<button class="btn btn-primary" onclick="closeModal(\'ntDetail\')">닫기</button></div></div></div>';
+  bg.addEventListener('click',function(e){ if(e.target===bg) closeModal('ntDetail'); });
+  document.body.appendChild(bg);
+}
+/* ---- 공지 모달(작성/수정) ---- */
+function openNoticeModal(id){
+  closeModal('ntModal'); closeModal('ntDetail');
+  var n=id?noticeList().find(function(x){return x.id===id;}):null;
+  var isNew=!n; n=n||{title:'',body:'',author:'',pin:false};
+  var bg=document.createElement('div'); bg.className='modal-bg'; bg.id='ntModal';
+  bg.innerHTML='<div class="modal"><h3>'+(isNew?'새 공지 등록':'공지')+'</h3>'+
+    '<label>제목</label><input id="nt_title" value="'+esc(n.title)+'" placeholder="예: 11월 편성 마감 10/28">'+
+    '<label>내용</label><textarea id="nt_body" class="ta" placeholder="상세 내용 (선택)">'+esc(n.body)+'</textarea>'+
+    '<div class="row2"><div><label>작성자</label><input id="nt_author" value="'+esc(n.author)+'" placeholder="예: 팀장"></div>'+
+    '<div><label style="display:flex;align-items:center;gap:6px;margin-top:22px;"><input type="checkbox" id="nt_pin" '+(n.pin?'checked':'')+' style="width:auto;"> 📌 상단 고정</label></div></div>'+
+    '<div class="modal-foot">'+
+      (isNew?'<span></span>':'<button class="btn btn-ghost" style="color:var(--red);border-color:var(--red);" onclick="deleteNotice(\''+n.id+'\')">삭제</button>')+
+      '<div style="display:flex;gap:8px;"><button class="btn btn-ghost" onclick="closeModal(\'ntModal\')">취소</button>'+
+      '<button class="btn btn-primary" onclick="saveNotice('+(isNew?'null':'\''+n.id+'\'')+')">저장</button></div></div></div>';
+  bg.addEventListener('click',function(e){ if(e.target===bg) closeModal('ntModal'); });
+  document.body.appendChild(bg);
+}
+function saveNotice(id){
+  var title=val('nt_title'), body=val('nt_body'), author=val('nt_author'), pin=document.getElementById('nt_pin').checked;
+  if(!title){ alert('제목을 입력하세요.'); return; }
+  var list=noticeList().slice();
+  if(id){ var i=list.findIndex(function(x){return x.id===id;}); if(i>=0){ list[i]=Object.assign({},list[i],{title:title,body:body,author:author,pin:pin}); } }
+  else { list.unshift({id:nid('n'), title:title, body:body, author:author, pin:pin, ts:Date.now(), date:todayStr().slice(5).replace('-','/')}); }
+  persistBoard('notices', list, 'ntModal');
+}
+function deleteNotice(id){ if(!confirm('이 공지를 삭제할까요?'))return; persistBoard('notices', noticeList().filter(function(x){return x.id!==id;}), 'ntModal'); }
+
+/* ---- 소담 모달 (작성) ---- */
+function openSodamModal(id){
+  closeModal('sdModal');
+  var bg=document.createElement('div'); bg.className='modal-bg'; bg.id='sdModal';
+  bg.innerHTML='<div class="modal"><h3>소담 — 글쓰기</h3>'+
+    '<label>제목</label><input id="sd_title" placeholder="예: 오늘 점심 뭐 드실 분?">'+
+    '<label>내용</label><textarea id="sd_body" class="ta" placeholder="자유롭게 (선택)"></textarea>'+
+    '<label>작성자</label><input id="sd_author" placeholder="예: 박주임">'+
+    '<div class="modal-foot"><span></span><div style="display:flex;gap:8px;">'+
+      '<button class="btn btn-ghost" onclick="closeModal(\'sdModal\')">취소</button>'+
+      '<button class="btn btn-primary" onclick="saveSodam()">등록</button></div></div></div>';
+  bg.addEventListener('click',function(e){ if(e.target===bg) closeModal('sdModal'); });
+  document.body.appendChild(bg);
+}
+function saveSodam(){
+  var title=val('sd_title'), body=val('sd_body'), author=val('sd_author');
+  if(!title){ alert('제목을 입력하세요.'); return; }
+  var list=sodamList().slice();
+  list.unshift({id:nid('s'), title:title, body:body, author:author, ts:Date.now(), comments:[]});
+  persistBoard('sodam', list, 'sdModal');
+}
+/* ---- 소담 상세 (읽기 + 댓글) ---- */
+function openSodamDetail(id){
+  closeModal('sdDetail');
+  var s=sodamList().find(function(x){return x.id===id;}); if(!s) return;
+  var cm=(s.comments||[]).map(function(c){
+    return '<div class="cmt"><span class="cmt-a">'+esc(c.author||'익명')+'</span> <span class="mut" style="font-size:10px;">'+relTime(c.ts)+'</span><div class="cmt-x">'+esc(c.text)+'</div></div>';
+  }).join('') || '<div class="mut" style="font-size:12px;padding:6px 0;">아직 댓글이 없습니다.</div>';
+  var bg=document.createElement('div'); bg.className='modal-bg'; bg.id='sdDetail';
+  bg.innerHTML='<div class="modal"><h3>'+esc(s.title)+'</h3>'+
+    '<div class="mut" style="font-size:12px;margin:-4px 0 10px;">'+esc(s.author||'')+' · '+relTime(s.ts)+'</div>'+
+    (s.body?'<div class="detail-body">'+esc(s.body)+'</div>':'')+
+    '<div class="sec-title" style="margin:14px 0 6px;">댓글 '+((s.comments||[]).length)+'</div>'+
+    '<div class="cmt-list">'+cm+'</div>'+
+    '<div class="row2" style="margin-top:10px;"><div style="flex:0 0 90px;"><input id="cm_author" placeholder="이름"></div>'+
+    '<div style="flex:1;"><input id="cm_text" placeholder="댓글 입력 후 등록"></div></div>'+
+    '<div class="modal-foot"><button class="btn btn-ghost" style="color:var(--red);border-color:var(--red);" onclick="deleteSodam(\''+s.id+'\')">글 삭제</button>'+
+    '<div style="display:flex;gap:8px;"><button class="btn btn-ghost" onclick="closeModal(\'sdDetail\')">닫기</button>'+
+    '<button class="btn btn-primary" onclick="addComment(\''+s.id+'\')">댓글 등록</button></div></div></div>';
+  bg.addEventListener('click',function(e){ if(e.target===bg) closeModal('sdDetail'); });
+  document.body.appendChild(bg);
+}
+function addComment(id){
+  var text=val('cm_text'); if(!text){ alert('댓글을 입력하세요.'); return; }
+  var author=val('cm_author')||'익명';
+  var list=sodamList().slice(); var i=list.findIndex(function(x){return x.id===id;}); if(i<0)return;
+  var s=Object.assign({},list[i]); s.comments=(s.comments||[]).slice(); s.comments.push({author:author,text:text,ts:Date.now()}); list[i]=s;
+  persistBoard('sodam', list, 'sdDetail', function(){ openSodamDetail(id); });
+}
+function deleteSodam(id){ if(!confirm('이 글을 삭제할까요?'))return; persistBoard('sodam', sodamList().filter(function(x){return x.id!==id;}), 'sdDetail'); }
+
+/* ---- 워크플로우 모달 ---- */
+function openWfModal(id){
+  closeModal('wfModal');
+  var parts=['공통','여행','렌탈','보험IB','보험OB','기타'];
+  var bg=document.createElement('div'); bg.className='modal-bg'; bg.id='wfModal';
+  bg.innerHTML='<div class="modal"><h3>신규 업무 등록 <span class="mut" style="font-size:12px;font-weight:400;">· 검토 상태로 등록됩니다</span></h3>'+
+    '<label>업무 제목</label><input id="wf_title" placeholder="예: 가정의 달 특별 편성 기획">'+
+    '<label>업무 내용 <span class="mut">· 간단히 (선택)</span></label><textarea id="wf_desc" class="ta" placeholder="예: 5월 가정의 달 타겟 편성 구성안 수립 — 여행·렌탈 합동"></textarea>'+
+    '<div class="row2"><div><label>파트</label><select id="wf_part">'+parts.map(function(p){return '<option>'+p+'</option>';}).join('')+'</select></div>'+
+    '<div><label>담당자</label><input id="wf_owner" placeholder="예: 테디"></div></div>'+
+    '<div class="modal-foot"><span></span><div style="display:flex;gap:8px;">'+
+      '<button class="btn btn-ghost" onclick="closeModal(\'wfModal\')">취소</button>'+
+      '<button class="btn btn-primary" onclick="saveWf()">등록</button></div></div></div>';
+  bg.addEventListener('click',function(e){ if(e.target===bg) closeModal('wfModal'); });
+  document.body.appendChild(bg);
+}
+function saveWf(){
+  var title=val('wf_title'), desc=val('wf_desc'), part=document.getElementById('wf_part').value, owner=val('wf_owner');
+  if(!title){ alert('업무 제목을 입력하세요.'); return; }
+  var list=wfList().slice();
+  list.push({id:nid('w'), title:title, desc:desc, part:part, owner:owner, status:'검토', memos:[], ts:Date.now()});
+  persistBoard('workflow', list, 'wfModal');
+}
+/* ---- 워크플로우 상세 (메모 타임라인 + 상태 변경) ---- */
+function openWfDetail(id){
+  closeModal('wfDetail');
+  var w=wfList().find(function(x){return x.id===id;}); if(!w) return;
+  var tl=(w.memos||[]).slice().sort(function(a,b){return (a.ts||0)-(b.ts||0);}).map(function(m){
+    var tag=m.status?'<span class="tl-status">→ '+esc(m.status)+'</span>':'';
+    return '<div class="tl"><div class="tl-dot"></div><div class="tl-x"><div class="tl-h">'+relTime(m.ts)+' '+tag+'</div>'+(m.text?'<div class="tl-b">'+esc(m.text)+'</div>':'')+'</div></div>';
+  }).join('') || '<div class="mut" style="font-size:12px;padding:4px 0;">진행 메모가 없습니다.</div>';
+  var statusBtns=WF_COLS.map(function(c){
+    var on=(c===w.status);
+    return '<button class="st-btn'+(on?' on':'')+'" style="'+(on?'background:'+WF_COL_COLOR[c]+';border-color:'+WF_COL_COLOR[c]+';color:#fff;':'color:'+WF_COL_COLOR[c]+';')+'" onclick="changeWfStatus(\''+w.id+'\',\''+c+'\')">'+c+'</button>';
+  }).join('');
+  var bg=document.createElement('div'); bg.className='modal-bg'; bg.id='wfDetail';
+  bg.innerHTML='<div class="modal"><h3>'+esc(w.title)+'</h3>'+
+    '<div style="display:flex;gap:8px;align-items:center;margin:-2px 0 12px;">'+partTag(w.part)+'<span class="mut" style="font-size:12px;">담당 '+esc(w.owner||'—')+'</span></div>'+
+    (w.desc?'<div class="detail-body" style="margin-bottom:14px;">'+esc(w.desc)+'</div>':'')+
+    '<label>상태 변경 <span class="mut">· 누르면 해당 칸으로 이동</span></label><div class="st-row">'+statusBtns+'</div>'+
+    '<div class="sec-title" style="margin:16px 0 6px;">진행 메모</div><div class="tl-list">'+tl+'</div>'+
+    '<label style="margin-top:12px;">메모 추가 <span class="mut">· 상태 변경 시 함께 저장됩니다</span></label><textarea id="wf_memo" class="ta" placeholder="예: 벤더 미팅 완료, 단가 협의 중"></textarea>'+
+    '<div class="modal-foot"><button class="btn btn-ghost" style="color:var(--red);border-color:var(--red);" onclick="deleteWf(\''+w.id+'\')">업무 삭제</button>'+
+    '<div style="display:flex;gap:8px;"><button class="btn btn-ghost" onclick="closeModal(\'wfDetail\')">닫기</button>'+
+    '<button class="btn btn-primary" onclick="addWfMemo(\''+w.id+'\')">메모 저장</button></div></div></div>';
+  bg.addEventListener('click',function(e){ if(e.target===bg) closeModal('wfDetail'); });
+  document.body.appendChild(bg);
+}
+function changeWfStatus(id, status){
+  var list=wfList().slice(); var i=list.findIndex(function(x){return x.id===id;}); if(i<0)return;
+  var w=Object.assign({},list[i]); if(w.status===status){ return; }
+  var memo=val('wf_memo');   // 상태 변경 시 입력돼 있던 메모를 함께 기록
+  w.status=status; w.memos=(w.memos||[]).slice(); w.memos.push({status:status, text:memo, ts:Date.now()}); list[i]=w;
+  persistBoard('workflow', list, null, function(){ openWfDetail(id); });
+}
+function addWfMemo(id){
+  var text=val('wf_memo'); if(!text){ alert('메모를 입력하세요.'); return; }
+  var list=wfList().slice(); var i=list.findIndex(function(x){return x.id===id;}); if(i<0)return;
+  var w=Object.assign({},list[i]); w.memos=(w.memos||[]).slice(); w.memos.push({text:text, ts:Date.now()}); list[i]=w;
+  persistBoard('workflow', list, null, function(){ openWfDetail(id); });
+}
+function deleteWf(id){ if(!confirm('이 업무를 삭제할까요?'))return; persistBoard('workflow', wfList().filter(function(x){return x.id!==id;}), 'wfDetail'); }
+
+/* ---- 공통 저장/도우미 ---- */
+function val(id){ var e=document.getElementById(id); return e?e.value.trim():''; }
+function closeModal(mid){ var m=document.getElementById(mid); if(m) m.remove(); }
+function persistBoard(kind, list, closeId, after){
+  if(STATE.loaded!==true){ alert('서버에서 기존 데이터를 불러오지 못한 상태라, 덮어쓰기를 막았습니다.\n새로고침(F5) 후 데이터가 보이면 다시 시도하세요.'); return; }
+  var payload={kind:kind}; payload[kind]=list;
+  saveToServer(payload, function(ok,msg){
+    if(!ok){ alert('저장 실패: '+(msg||'서버 확인 필요')+'\n아직 반영되지 않았습니다. 서버(검은 창)를 확인하고 다시 저장하세요.'); return; }
+    STATE[kind]=list;
+    if(closeId) closeModal(closeId);
+    render();
+    if(after) after();
+  });
+}
+
+/* ---- 시드(예시) 데이터 : 서버 미연결/첫 실행 때만 ---- */
+function seedNotices(){ return [
+  {id:'n1', title:'11월 편성 마감 10/28', body:'각 파트 11월 편성안 28일까지 제출 바랍니다.', author:'팀장', pin:true, ts:Date.now()-1*3600000, date:'10/23'},
+  {id:'n2', title:'주간회의 변경 → 금 10시', body:'', author:'김과장', pin:false, ts:Date.now()-26*3600000, date:'10/22'},
+  {id:'n3', title:'보험OB 신규센터 오픈 안내', body:'', author:'이대리', pin:false, ts:Date.now()-72*3600000, date:'10/20'}
+]; }
+function seedSodam(){ return [
+  {id:'s1', title:'오늘 점심 뭐 드실 분? 🍜 12시 로비', body:'', author:'박주임', ts:Date.now()-20*60000, comments:[{author:'최대리',text:'콜!',ts:Date.now()-10*60000},{author:'김과장',text:'저도요',ts:Date.now()-5*60000},{author:'이대리',text:'로비 ㄱㄱ',ts:Date.now()-3*60000}]},
+  {id:'s2', title:'여행팀 방송 대박 축하합니다 🎉', body:'', author:'최과장', ts:Date.now()-60*60000, comments:[{author:'팀장',text:'수고 많았어요',ts:Date.now()-50*60000}]},
+  {id:'s3', title:'좋은 가정의 달 상품 아이디어 있으신 분', body:'', author:'이대리', ts:Date.now()-26*3600000, comments:[{author:'박주임',text:'DM 드릴게요',ts:Date.now()-24*3600000}]}
+]; }
+function seedWorkflow(){ return [
+  {id:'w1', title:'가정의 달 특별 편성 기획', part:'공통', owner:'테디', status:'검토', memos:[], ts:Date.now()-5*3600000},
+  {id:'w2', title:'간병보험 신상품 도입 검토', part:'보험IB', owner:'이대리', status:'검토', memos:[], ts:Date.now()-6*3600000},
+  {id:'w3', title:'11월 해외패키지 편성안', part:'여행', owner:'김과장', status:'진행예정', memos:[], ts:Date.now()-7*3600000},
+  {id:'w4', title:'안마의자 신규 벤더 계약', part:'렌탈', owner:'박주임', status:'진행중', memos:[{text:'1차 미팅 완료',ts:Date.now()-3*3600000}], ts:Date.now()-8*3600000},
+  {id:'w5', title:'OB 신규센터 2곳 셋업', part:'보험OB', owner:'최대리', status:'진행중', memos:[], ts:Date.now()-9*3600000},
+  {id:'w6', title:'KPI 대시보드 구축', part:'공통', owner:'테디', status:'진행중', memos:[], ts:Date.now()-10*3600000},
+  {id:'w7', title:'10월 편성 확정', part:'여행', owner:'김과장', status:'완료', memos:[], ts:Date.now()-30*3600000}
+]; }
+
+/* ---- 전체 탭 ---- */
+function renderOverview(p){
+  var B=STATE.daily.broadcast;
+  var team=B['팀 총계']||{live:{},one:{}};
+  function sumField(f){ // Live+One 합 (팀 총계 기준)
+    var l=team.live&&team.live[f], o=team.one&&team.one[f];
+    return r1((l||0)+(o||0));
+  }
+  var TT=(STATE.target&&STATE.target['팀 총계'])||{live:{},one:{}};
+  function tgtSum(f){ var l=TT.live&&TT.live[f], o=TT.one&&TT.one[f]; return (l!=null||o!=null)?r1((l||0)+(o||0)):null; }
+  var html='';
+  html+='<div class="card mb" style="border-left:3px solid var(--accent);"><div class="lbl">팀 총계 <span class="mut">· Live+One</span></div>'+
+    '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr));">'+
+    metricCell('매출',sumField('sales'),tgtSum('sales'),'',true)+
+    metricCell('공헌이익',sumField('profit'),tgtSum('profit'),'',true)+
+    metricCell('가중시간',sumField('wt'),tgtSum('time'),'H',true)+
+    '<div><div class="k">방송달성률</div><div class="big">'+brateHtml(team.live&&team.live.bRate)+'</div></div>'+
+    '</div></div>';
+  // 채널 소계 (팀 총계 Live/One) + 각 채널 목표
+  html+='<div class="grid mb" style="grid-template-columns:1fr 1fr;">'+
+    chCard('Live TV',team.live,TT.live)+chCard('One TV',team.one,TT.one)+'</div>';
+  // 추이
+  html+='<div class="sec-title">일별 달성률 추이 <span class="mut">· 팀 전체 · Live/One · (10월 가상데이터)</span></div>'+
+    '<div class="card2 mb"><div style="position:relative;height:230px;"><canvas id="ovTrend"></canvas></div>'+legend()+'</div>';
+  // 계층표
+  html+='<div class="sec-title">파트별 통합 현황판 <span class="mut">· 계층 · 채널별</span></div>'+
+    '<div class="tbl-wrap"><table style="min-width:620px;"><thead><tr>'+
+    '<th class="brd-r" style="text-align:left;">파트</th><th class="brd-r">채널</th><th>매출</th><th class="acc">공헌이익</th><th>가중시간</th><th>방송달성률</th>'+
+    '</tr></thead><tbody id="ovBody"></tbody></table></div>';
+  p.innerHTML=html;
+
+  var order=['여행','렌탈 계','렌탈1','렌탈2','렌탈3','보험IB 계','보험IB','매체TV','보험OB','팀 총계'];
+  var indent={'렌탈1':1,'렌탈2':1,'렌탈3':1,'보험IB':1,'매체TV':1};
+  var body='';
+  order.forEach(function(part){
+    var b=B[part]; if(!b) return;
+    var isTotal=(part==='팀 총계'), isGrp=(/계$/.test(part));
+    var rowspan=(b.live&&b.one)?2:1;
+    var cls=isTotal?'grp-row':(isGrp?'total-row':'');
+    var pad=indent[part]?'padding-left:22px;':'';
+    var nm=(indent[part]?'└ ':'')+part;
+    var chans=[];
+    if(b.live) chans.push(['Live',b.live]);
+    if(b.one) chans.push(['One',b.one]);
+    chans.forEach(function(c,idx){
+      body+='<tr class="'+cls+'">';
+      if(idx===0) body+='<td rowspan="'+rowspan+'" class="brd-r" style="text-align:left;vertical-align:middle;'+pad+(isTotal||isGrp?'font-weight:600;':'')+'">'+nm+'</td>';
+      body+='<td class="brd-r mut">'+c[0]+'</td>'+
+        '<td>'+fmt(c[1].sales)+'</td>'+
+        '<td class="acc">'+fmt(c[1].profit)+'</td>'+
+        '<td class="mut">'+fmt(c[1].wt,'H')+'</td>'+
+        '<td>'+brateHtml(c[1].bRate)+'</td></tr>';
+    });
+  });
+  document.getElementById('ovBody').innerHTML=body;
+
+  var T=STATE.trend;
+  charts.push(new Chart(document.getElementById('ovTrend'),lineCfg([
+    ds('Live',T['팀_live'],LIVE,2.5,false), ds('One',T['팀_one'],ONE,2.5,false),
+    ds('목표',TDAYS.map(()=>100),GOAL,1,true)],80,140)));
+}
+function chCard(title,c,tg){ c=c||{}; tg=tg||{};
+  return '<div class="card"><div style="font-size:13px;font-weight:500;margin-bottom:10px;">'+title+'</div>'+
+  '<div class="grid" style="grid-template-columns:1fr 1fr;gap:12px 16px;">'+
+  metricCell('매출', c.sales, tg.sales, '')+
+  metricCell('공헌이익', c.profit, tg.profit, '')+
+  metricCell('가중시간', c.wt, tg.time, 'H')+
+  '<div><div class="k">방송달성률</div><div class="num" style="font-size:21px;">'+brateHtml(c.bRate)+'</div></div>'+
+  '</div></div>';
+}
+
+/* ---- 방송 파트 탭 ---- */
+function renderBroadcast(p,name){
+  var B=STATE.daily.broadcast;
+  // 파트별 구성: 여행=여행 / 렌탈=렌탈 계+렌탈1/2/3 / 보험방송=보험IB 계+보험IB+매체TV
+  var groups={
+    '여행':{main:'여행', subs:[]},
+    '렌탈':{main:'렌탈 계', subs:['렌탈1','렌탈2','렌탈3']},
+    '보험방송':{main:'보험IB 계', subs:['보험IB','매체TV']}
+  };
+  var g=groups[name]; var main=B[g.main]||{live:{},one:{}};
+  var mtg=(STATE.target&&STATE.target[g.main])||{live:{},one:{}};
+  var html='<div class="sec-title">'+name+' 핵심지표 · 채널별</div>'+
+    '<div class="grid mb" style="grid-template-columns:1fr 1fr;">'+kpiCard('Live TV',main.live,mtg.live)+kpiCard('One TV',main.one,mtg.one)+'</div>';
+  // 추이
+  var tk=(name==='렌탈'?'렌탈 계':name==='보험방송'?'보험IB 계':'여행');
+  html+='<div class="sec-title">일별 달성률 추이 <span class="mut">· '+name+' 전체 · Live/One · (10월 가상데이터)</span></div>'+
+    '<div class="card2 mb"><div style="position:relative;height:200px;"><canvas id="mainTrend"></canvas></div>'+legend()+'</div>';
+  // 상세표
+  html+='<div class="sec-title">상세 <span class="mut">· 채널별</span></div>'+detailTable(name,g,B);
+  p.innerHTML=html;
+
+  var T=STATE.trend;
+  var lk=tk+'_live', ok=tk+'_one';
+  charts.push(new Chart(document.getElementById('mainTrend'),lineCfg([
+    ds('Live',T[lk]||TDAYS.map(()=>100),LIVE,2.5,false),
+    ds('One',T[ok]||TDAYS.map(()=>100),ONE,2.5,false),
+    ds('목표',TDAYS.map(()=>100),GOAL,1,true)],60,150)));
+}
+function kpiCard(label,c,tg){ c=c||{}; tg=tg||{};
+  return '<div class="card"><div style="font-size:13px;font-weight:500;margin-bottom:12px;">'+label+'</div>'+
+  '<div class="grid" style="grid-template-columns:1fr 1fr;gap:14px 16px;">'+
+  metricCell('매출', c.sales, tg.sales, '', true)+
+  metricCell('공헌이익', c.profit, tg.profit, '', true)+
+  metricCell('가중시간', c.wt, tg.time, 'H', true)+
+  '<div><div class="k">방송달성률</div><div class="num" style="font-size:24px;">'+brateHtml(c.bRate)+'</div></div>'+
+  '</div></div>';
+}
+function detailTable(name,g,B){
+  var head='<div class="tbl-wrap"><table style="min-width:620px;"><thead><tr>'+
+    '<th class="brd-r" style="text-align:left;">구분</th><th class="brd-r">채널</th><th>가중시간</th><th>매출</th><th class="acc">공헌이익</th><th>방송달성률</th>'+
+    '</tr></thead><tbody>';
+  var body='';
+  function rows(label,key,strong){
+    var b=B[key]; if(!b) return;
+    var chans=[]; if(b.live)chans.push(['Live',b.live]); if(b.one)chans.push(['One',b.one]);
+    chans.forEach(function(c,idx){
+      body+='<tr class="'+(strong?'total-row':'')+'">';
+      if(idx===0) body+='<td rowspan="'+chans.length+'" class="brd-r" style="text-align:left;vertical-align:middle;'+(strong?'font-weight:600;':'')+'">'+label+'</td>';
+      body+='<td class="brd-r mut">'+c[0]+'</td><td class="mut">'+fmt(c[1].wt,'H')+'</td><td>'+fmt(c[1].sales)+'</td>'+
+        '<td class="acc">'+fmt(c[1].profit)+'</td><td>'+brateHtml(c[1].bRate)+'</td></tr>';
+    });
+  }
+  rows(g.main, g.main, true);
+  g.subs.forEach(s=>rows(s,s,false));
+  return head+body+'</tbody></table></div>';
+}
+
+/* ---- 보험OB 탭 ---- */
+// 영업일: 관리자가 입력한 값(STATE.obMeta) 우선, 없으면 붙여넣기에서 읽은 값
+function effMeta(parsed){
+  var e=(STATE.obMeta&&STATE.obMeta.elapsed!=null)?STATE.obMeta.elapsed:(parsed?parsed.elapsed:null);
+  var t=(STATE.obMeta&&STATE.obMeta.total!=null)?STATE.obMeta.total:(parsed?parsed.total:null);
+  return {elapsed:e, total:t};
+}
+// 일별 수수료 그래프: 선택 월의 '날짜별 일일실적'에서 보험OB 총계 당일수수료를 자동 집계
+// (입력이 없는 날/달은 자연히 공란 — 매일 일일실적이 쌓이면 그 날짜에 막대가 생김)
+function obDailySeries(month){
+  var all=window.__ALL_DAILY||{};
+  var dates=Object.keys(all).filter(function(k){return k.slice(0,7)===month;}).sort();
+  var labels=[], values=[];
+  dates.forEach(function(dk){
+    var p; try{ p=parseDaily(all[dk].dailyText||''); }catch(e){ p=null; }
+    var tot = (p&&p.ob&&p.ob.centers) ? p.ob.centers.find(function(c){return /총계/.test(c.name);}) : null;
+    var today = (tot&&tot.fee&&tot.fee.today!=null) ? tot.fee.today : null;
+    labels.push(parseInt(dk.slice(5,7),10)+'/'+parseInt(dk.slice(8,10),10));
+    values.push(today);
+  });
+  return {labels:labels, values:values};
+}
+function renderOB(p){
+  var ob=STATE.daily.ob; var meta=effMeta(ob.meta);
+  var total=ob.centers.find(c=>/총계/.test(c.name))||{mmp:{},fee:{}};
+  var feeC=total.fee||{}, mmpC=total.mmp||{};
+  var prog = (feeC.cum!=null&&feeC.goal)?r1(feeC.cum/feeC.goal*100):null;
+  var avgFee = (feeC.cum!=null&&meta.elapsed)?r1(feeC.cum/meta.elapsed):null;
+  var estFee = (avgFee!=null&&meta.total)?r1(avgFee*meta.total):null;
+  var html='<div class="grid mb" style="grid-template-columns:1.3fr 1fr;">'+
+    '<div class="card"><div class="lbl">월 누계 <span class="mut">· 영업일 '+fmt(meta.elapsed)+'/'+fmt(meta.total)+'일</span></div><div class="grid" style="grid-template-columns:1fr 1fr;">'+
+      kv('누적 수수료',fmt(feeC.cum),'var(--accent)')+kv('진도율',fmt(prog,'%'))+kv('누적 MMP',fmt(mmpC.cum))+kv('당월 예상 수수료',fmt(estFee))+'</div></div>'+
+    '<div class="card" style="border-left:3px solid var(--accent);"><div class="lbl">당일 <span class="mut">· 일평균 수수료 '+fmt(avgFee)+'</span></div>'+
+      '<div class="grid" style="grid-template-columns:1fr 1fr;">'+kv('당일 수수료',fmt(feeC.today),'var(--accent)')+kv('당일 MMP',fmt(mmpC.today))+'</div></div></div>';
+  // 일별 목표 수수료 = 총계 수수료 누적목표 ÷ 총영업일
+  var dayGoalFee = (feeC.goal!=null && meta.total) ? r1(feeC.goal/meta.total) : null;
+  var series = obDailySeries(curMonth);
+  var hasReal = series.labels.length>0;
+  html+='<div class="sec-title">일별 수수료 현황 <span class="mut">· '+(hasReal?'일일실적에서 자동 집계(당일 수수료)':monthLabel(curMonth)+' 입력 전 — 날짜별 일일실적이 쌓이면 자동 표시')+(dayGoalFee!=null?' · 기준선=일별 목표 '+dayGoalFee:'')+'</span></div>'+
+    '<div class="card2 mb"><div style="position:relative;height:200px;"><canvas id="obDaily"></canvas></div></div>';
+  html+='<div class="sec-title">센터별 현황판 <span class="mut">· 단위 백만원 · 목표(일별)=누적목표÷총영업일('+fmt(meta.total)+'일)</span></div><div class="tbl-wrap"><table style="min-width:560px;"><thead>'+
+    '<tr><th class="brd-r" style="text-align:left;">센터</th><th>구분</th><th>누적</th><th>당일</th><th>목표(일별)</th><th>진도율</th></tr>'+
+    '</thead><tbody id="obBody"></tbody></table></div>';
+  p.innerHTML=html;
+
+  var body='';
+  function pc(v){return v==null?'var(--muted)':v>=100?'var(--green)':v>=80?'#2a6cd4':v>=60?'var(--amber)':'var(--red)';}
+  function dailyGoal(goalCum){ return (goalCum!=null&&meta.total)?r1(goalCum/meta.total):null; }
+  ob.centers.forEach(function(c){
+    var isT=/총계/.test(c.name); var cls=isT?'total-row':'';
+    var m=c.mmp||{}, f=c.fee||{};
+    var cprog=(f.cum!=null&&f.goal)?r1(f.cum/f.goal*100):null;
+    body+='<tr class="'+cls+'"><td rowspan="2" class="brd-r" style="text-align:left;vertical-align:middle;'+(isT?'font-weight:600;':'')+'">'+c.name+'</td>'+
+      '<td class="mut">MMP</td><td>'+fmt(m.cum)+'</td><td class="mut">'+fmt(m.today)+'</td><td class="mut">'+fmt(dailyGoal(m.goal))+'</td>'+
+      '<td rowspan="2" style="vertical-align:middle;font-weight:500;color:'+pc(cprog)+';">'+fmt(cprog,'%')+'</td></tr>'+
+      '<tr class="'+cls+'"><td style="color:var(--accent);">수수료</td><td style="color:var(--accent);font-weight:500;">'+fmt(f.cum)+'</td><td>'+fmt(f.today)+'</td><td class="mut">'+fmt(dailyGoal(f.goal))+'</td></tr>';
+  });
+  document.getElementById('obBody').innerHTML=body;
+
+  var obLabels = series.labels;
+  var obVals = series.values;
+  var dsets=[{type:'bar',label:'일 수수료',data:obVals,backgroundColor:obVals.map(function(v){ return (dayGoalFee!=null&&v!=null&&v>=dayGoalFee)?'#1f9d6b':'#2a6cd4'; }),borderRadius:4,maxBarThickness:22}];
+  if(dayGoalFee!=null && hasReal){
+    dsets.unshift({type:'line',label:'일별 목표',data:obLabels.map(function(){return dayGoalFee;}),borderColor:'#c9342c',borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false});
+  }
+  charts.push(new Chart(document.getElementById('obDaily'),{data:{labels:obLabels,datasets:dsets},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:dayGoalFee!=null&&hasReal,position:'top',align:'end',labels:{color:'#908e86',font:{size:11},boxWidth:12,filter:function(it){return it.text==='일별 목표';}}}},scales:{y:{beginAtZero:true,grid:{color:'#e1e0d9'},ticks:{color:'#908e86',font:{size:11}}},x:{grid:{display:false},ticks:{color:'#908e86',font:{size:11},maxRotation:45,autoSkip:true,maxTicksLimit:16}}}}}));
+}
+
+/* ---- 방송캘린더 탭 ---- */
+var CAT_COLOR={ '보험':'#d08a00', '여행':'#2a6cd4', '렌탈':'#1f9d6b' };
+var calCh='Live';            // 캘린더 내 채널
+var calYM={y:2026, m:10};    // 표시 연월
+function bList(){ return STATE.broadcasts||[]; }
+function bForDate(ch, ds){ return bList().filter(function(b){ return b.ch===ch && b.date===ds; }); }
+function shortNm(nm){ return (nm&&nm.length>12)? nm.slice(0,12)+'…' : (nm||''); }
+function rc(v){ return (v!=null && v<100)?'var(--red)':'var(--sec)'; }
+function wn(v){ return (v!=null && v<80)?'⚠':''; }
+
+function renderCalendar(p){
+  var html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">'+
+    '<div style="display:flex;gap:2px;" id="calChTabs"></div>'+
+    '<div style="font-size:13px;color:var(--muted);">'+calYM.y+'년 '+calYM.m+'월 · 각 박스 = 방송 1건</div></div>';
+  html+='<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px;font-size:12px;">'+
+    '<span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:3px;background:#d08a00;display:inline-block;"></span>보험</span>'+
+    '<span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:3px;background:#2a6cd4;display:inline-block;"></span>여행</span>'+
+    '<span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:3px;background:#1f9d6b;display:inline-block;"></span>렌탈</span>'+
+    '<span style="color:var(--muted);margin-left:8px;">박스: 시간 · 상품(축약) · 매출% / 공헌% · 100%미만 빨강, 80%미만 ⚠ · 날짜의 + 로 추가, 박스 클릭 수정</span></div>';
+  html+='<div class="cal-grid" style="margin-bottom:6px;"><div class="dow">일</div><div class="dow">월</div><div class="dow">화</div><div class="dow">수</div><div class="dow">목</div><div class="dow">금</div><div class="dow">토</div></div>';
+  html+='<div class="cal-grid" id="calGrid"></div>';
+  p.innerHTML=html;
+
+  document.getElementById('calChTabs').innerHTML=['Live','One'].map(function(c){
+    return '<button class="tab'+(c===calCh?' active':'')+'" onclick="calSetCh(\''+c+'\')">'+c+' TV</button>'; }).join('');
+
+  var y=calYM.y, m=calYM.m;
+  var first=new Date(y,m-1,1), startDow=first.getDay(), days=new Date(y,m,0).getDate();
+  var wk=['일','월','화','수','목','금','토']; var g='';
+  for(var i=0;i<startDow;i++) g+='<div class="cell empty"></div>';
+  for(var d=1; d<=days; d++){
+    var ds=y+'-'+(m<10?'0'+m:m)+'-'+(d<10?'0'+d:d);
+    var evs=bForDate(calCh, ds);
+    var dow=new Date(y,m-1,d).getDay();
+    var head='<div class="daynum"><span>'+d+' <span class="wk">'+wk[dow]+'</span></span>'+
+      '<span class="addbtn" title="방송 추가" onclick="calAdd(\''+ds+'\')">+</span></div>';
+    var box='';
+    evs.forEach(function(e){ box+=evtBox(e); });  // 그날 방송 전부 표시 (칸 자동 확장)
+    g+='<div class="cell">'+head+box+'</div>';
+  }
+  document.getElementById('calGrid').innerHTML=g;
+}
+function evtBox(e){
+  var col=CAT_COLOR[e.cat]||'#999';
+  var hasReview=!!(e.review&&e.review.trim());
+  var hover=hasReview?(' onmouseenter="showReview(event,\''+e.id+'\')" onmouseleave="hideReview()"'):'';
+  return '<div class="evt" style="border-left-color:'+col+';"'+
+    ' onclick="calEdit(\''+e.id+'\')"'+hover+'>'+
+    '<span class="t">'+(e.time||'')+(hasReview?' <span style="color:var(--accent);">📝</span>':'')+'</span>'+
+    '<span class="nm">'+shortNm(e.name)+'</span>'+
+    '<div class="r">'+wn(e.s)+'<span style="color:'+rc(e.s)+';">'+(e.s==null?'—':e.s+'%')+'</span>'+
+    ' <span style="color:var(--muted);">/</span> <span style="color:'+rc(e.c)+';">'+(e.c==null?'—':e.c+'%')+'</span></div></div>';
+}
+// 리뷰 호버 툴팁
+function showReview(ev, id){
+  var e=bList().find(function(x){return x.id===id;}); if(!e||!e.review) return;
+  hideReview();
+  var t=document.createElement('div'); t.id='calTip';
+  t.style.cssText='position:fixed;z-index:300;max-width:280px;background:var(--ink,#2b2a26);color:#fff;font-size:12px;line-height:1.5;padding:9px 12px;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,0.2);pointer-events:none;white-space:pre-wrap;';
+  t.textContent=(e.name?e.name+'\n':'')+'─────\n'+e.review;
+  document.body.appendChild(t);
+  var x=ev.clientX+14, y=ev.clientY+14;
+  if(x+290>window.innerWidth) x=ev.clientX-294;
+  if(y+120>window.innerHeight) y=ev.clientY-120;
+  t.style.left=Math.max(8,x)+'px'; t.style.top=Math.max(8,y)+'px';
+}
+function hideReview(){ var t=document.getElementById('calTip'); if(t) t.remove(); }
+function calSetCh(c){ calCh=c; render(); }
+
+// + 추가 / 수정 모달 (방송캘린더는 누구나 입력 가능)
+function calAdd(ds){ openEvtModal(null, ds); }
+function calEdit(id){ var e=bList().find(function(x){return x.id===id;}); if(e) openEvtModal(e, e.date); }
+function openEvtModal(ev, ds){
+  var isNew=!ev; ev=ev||{cat:'보험',time:'',name:'',s:'',c:'',review:''};
+  var bg=document.createElement('div'); bg.className='modal-bg'; bg.id='evtModal';
+  bg.innerHTML='<div class="modal">'+
+    '<h3>'+(isNew?'방송 추가':'방송 수정')+' <span style="font-weight:400;color:var(--muted);font-size:12px;">· '+ds+' · '+calCh+' TV</span></h3>'+
+    '<label>카테고리</label><select id="m_cat"><option'+(ev.cat==='보험'?' selected':'')+'>보험</option><option'+(ev.cat==='여행'?' selected':'')+'>여행</option><option'+(ev.cat==='렌탈'?' selected':'')+'>렌탈</option></select>'+
+    '<label>방송시간 (예: 13:35)</label><input id="m_time" value="'+(ev.time||'')+'" placeholder="13:35">'+
+    '<label>상품명</label><input id="m_name" value="'+(ev.name||'').replace(/"/g,'&quot;')+'" placeholder="예: 메리츠화재 암보험">'+
+    '<div class="row2"><div><label>매출달성률 %</label><input id="m_s" type="number" value="'+(ev.s===''||ev.s==null?'':ev.s)+'" placeholder="86"></div>'+
+    '<div><label>공헌달성률 %</label><input id="m_c" type="number" value="'+(ev.c===''||ev.c==null?'':ev.c)+'" placeholder="110"></div></div>'+
+    '<label>방송 리뷰 (MD 메모)</label><textarea id="m_review" style="width:100%;min-height:70px;padding:8px 10px;border:1px solid var(--border-strong);border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;" placeholder="예: 저녁 시간대 반응 좋음. 사은품 강조한 구성이 주효. 다음엔 가격 자막 키우자">'+(ev.review||'').replace(/</g,'&lt;')+'</textarea>'+
+    '<div style="display:flex;gap:8px;margin-top:18px;justify-content:space-between;">'+
+      (isNew?'<span></span>':'<button class="btn btn-ghost" style="color:var(--red);border-color:var(--red);" onclick="calDelete(\''+ev.id+'\')">삭제</button>')+
+      '<div style="display:flex;gap:8px;"><button class="btn btn-ghost" onclick="closeEvtModal()">취소</button>'+
+      '<button class="btn btn-primary" onclick="calSaveEvt('+(isNew?'null':'\''+ev.id+'\'')+',\''+ds+'\')">저장</button></div>'+
+    '</div></div>';
+  bg.addEventListener('click',function(e){ if(e.target===bg) closeEvtModal(); });
+  document.body.appendChild(bg);
+}
+function closeEvtModal(){ var m=document.getElementById('evtModal'); if(m) m.remove(); }
+function pnum(id){ var v=document.getElementById(id).value.trim(); if(v==='') return null; var n=parseFloat(v); return isNaN(n)?null:n; }
+function calSaveEvt(id, ds){
+  var cat=document.getElementById('m_cat').value;
+  var time=document.getElementById('m_time').value.trim();
+  var name=document.getElementById('m_name').value.trim();
+  var review=document.getElementById('m_review').value.trim();
+  var s=pnum('m_s'), c=pnum('m_c');
+  if(!name){ alert('상품명을 입력하세요.'); return; }
+  var list=bList().slice();
+  if(id){ // 수정
+    var idx=list.findIndex(function(x){return x.id===id;});
+    if(idx>=0) list[idx]={id:id, ch:calCh, date:ds, cat:cat, time:time, name:name, s:s, c:c, review:review};
+  } else { // 추가
+    list.push({id:'b'+Date.now()+Math.floor(Math.random()*1000), ch:calCh, date:ds, cat:cat, time:time, name:name, s:s, c:c, review:review});
+  }
+  persistBroadcasts(list, '저장되었습니다');
+}
+function calDelete(id){
+  if(!confirm('이 방송을 삭제할까요?')) return;
+  var list=bList().filter(function(x){return x.id!==id;});
+  persistBroadcasts(list, '삭제되었습니다');
+}
+function persistBroadcasts(list, okMsg){
+  if(STATE.loaded!==true){ alert('서버에서 기존 데이터를 불러오지 못한 상태라, 덮어쓰기를 막았습니다.\n새로고침(F5)해서 데이터가 보이는지 확인한 뒤 다시 시도하세요.'); return; }
+  saveToServer({kind:'broadcasts', broadcasts:list}, function(ok,msg){
+    if(!ok){ alert('저장 실패: '+(msg||'서버 확인 필요')+'\n입력한 내용은 아직 반영되지 않았습니다. 서버를 확인하고 다시 저장하세요.'); return; }
+    STATE.broadcasts=list;  // 서버 저장 성공 후에만 반영
+    closeEvtModal();
+    render();
+  });
+}
+
+/* ---- 팀스케줄 탭 ---- */
+var SCH_COLOR={ '연차':'#2a6cd4', '외근':'#1f9d6b', '주요회의':'#d08a00', '교육':'#9a6dd7' };
+var schYM={y:2026, m:10};
+function sList(){ return STATE.schedules||[]; }
+function sForDate(ds){ return sList().filter(function(s){ return s.date===ds; }); }
+function renderSchedule(p){
+  var html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">'+
+    '<div style="font-size:15px;font-weight:600;">팀 스케줄</div>'+
+    '<div style="font-size:13px;color:var(--muted);">'+schYM.y+'년 '+schYM.m+'월 · 누구나 입력</div></div>';
+  html+='<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px;font-size:12px;">'+
+    '<span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:3px;background:#2a6cd4;display:inline-block;"></span>연차</span>'+
+    '<span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:3px;background:#1f9d6b;display:inline-block;"></span>외근</span>'+
+    '<span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:3px;background:#d08a00;display:inline-block;"></span>주요회의</span>'+
+    '<span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:3px;background:#9a6dd7;display:inline-block;"></span>교육</span>'+
+    '<span style="color:var(--muted);margin-left:8px;">날짜의 + 로 추가, 박스 클릭 수정</span></div>';
+  html+='<div class="cal-grid" style="margin-bottom:6px;"><div class="dow">일</div><div class="dow">월</div><div class="dow">화</div><div class="dow">수</div><div class="dow">목</div><div class="dow">금</div><div class="dow">토</div></div>';
+  html+='<div class="cal-grid" id="schGrid"></div>';
+  p.innerHTML=html;
+
+  var y=schYM.y, m=schYM.m;
+  var startDow=new Date(y,m-1,1).getDay(), days=new Date(y,m,0).getDate();
+  var wk=['일','월','화','수','목','금','토']; var g='';
+  for(var i=0;i<startDow;i++) g+='<div class="cell empty"></div>';
+  for(var d=1; d<=days; d++){
+    var ds=y+'-'+(m<10?'0'+m:m)+'-'+(d<10?'0'+d:d);
+    var evs=sForDate(ds);
+    var dow=new Date(y,m-1,d).getDay();
+    var head='<div class="daynum"><span>'+d+' <span class="wk">'+wk[dow]+'</span></span>'+
+      '<span class="addbtn" title="일정 추가" onclick="schAdd(\''+ds+'\')">+</span></div>';
+    var box=''; evs.forEach(function(e){ box+=schBox(e); });
+    g+='<div class="cell">'+head+box+'</div>';
+  }
+  document.getElementById('schGrid').innerHTML=g;
+}
+function schBox(e){
+  var col=SCH_COLOR[e.type]||'#999';
+  var sub=(e.time?e.time+' ':'')+(e.memo||'');
+  return '<div class="evt" style="border-left-color:'+col+';" title="'+(e.type||'')+' '+(e.who||'')+'" onclick="schEdit(\''+e.id+'\')">'+
+    '<span class="nm" style="font-weight:500;">'+(e.type||'')+' · '+(e.who||'')+'</span>'+
+    (sub?'<span class="t" style="display:block;">'+sub+'</span>':'')+'</div>';
+}
+function schAdd(ds){ openSchModal(null, ds); }
+function schEdit(id){ var e=sList().find(function(x){return x.id===id;}); if(e) openSchModal(e, e.date); }
+function openSchModal(ev, ds){
+  var isNew=!ev; ev=ev||{type:'연차',who:'',time:'',memo:''};
+  var bg=document.createElement('div'); bg.className='modal-bg'; bg.id='schModal';
+  bg.innerHTML='<div class="modal">'+
+    '<h3>'+(isNew?'일정 추가':'일정 수정')+' <span style="font-weight:400;color:var(--muted);font-size:12px;">· '+ds+'</span></h3>'+
+    '<label>유형</label><select id="s_type">'+
+      ['연차','외근','주요회의','교육'].map(function(t){return '<option'+(ev.type===t?' selected':'')+'>'+t+'</option>';}).join('')+'</select>'+
+    '<label>이름</label><input id="s_who" value="'+(ev.who||'').replace(/"/g,'&quot;')+'" placeholder="예: 홍길동">'+
+    '<div class="row2"><div><label>시간 (선택)</label><input id="s_time" value="'+(ev.time||'')+'" placeholder="14:00"></div>'+
+    '<div><label>내용 (선택)</label><input id="s_memo" value="'+(ev.memo||'').replace(/"/g,'&quot;')+'" placeholder="팀 주간회의"></div></div>'+
+    '<div style="display:flex;gap:8px;margin-top:18px;justify-content:space-between;">'+
+      (isNew?'<span></span>':'<button class="btn btn-ghost" style="color:var(--red);border-color:var(--red);" onclick="schDelete(\''+ev.id+'\')">삭제</button>')+
+      '<div style="display:flex;gap:8px;"><button class="btn btn-ghost" onclick="closeSchModal()">취소</button>'+
+      '<button class="btn btn-primary" onclick="schSave('+(isNew?'null':'\''+ev.id+'\'')+',\''+ds+'\')">저장</button></div>'+
+    '</div></div>';
+  bg.addEventListener('click',function(e){ if(e.target===bg) closeSchModal(); });
+  document.body.appendChild(bg);
+}
+function closeSchModal(){ var m=document.getElementById('schModal'); if(m) m.remove(); }
+function schSave(id, ds){
+  var type=document.getElementById('s_type').value;
+  var who=document.getElementById('s_who').value.trim();
+  var time=document.getElementById('s_time').value.trim();
+  var memo=document.getElementById('s_memo').value.trim();
+  if(!who){ alert('이름을 입력하세요.'); return; }
+  var list=sList().slice();
+  if(id){ var idx=list.findIndex(function(x){return x.id===id;}); if(idx>=0) list[idx]={id:id,date:ds,type:type,who:who,time:time,memo:memo}; }
+  else { list.push({id:'s'+Date.now()+Math.floor(Math.random()*1000), date:ds, type:type, who:who, time:time, memo:memo}); }
+  persistSchedules(list);
+}
+function schDelete(id){ if(!confirm('이 일정을 삭제할까요?')) return; persistSchedules(sList().filter(function(x){return x.id!==id;})); }
+function persistSchedules(list){
+  if(STATE.loaded!==true){ alert('서버에서 기존 데이터를 불러오지 못한 상태라, 덮어쓰기를 막았습니다.\n새로고침(F5)해서 일정이 보이는지 확인한 뒤 다시 시도하세요.'); return; }
+  saveToServer({kind:'schedules', schedules:list}, function(ok,msg){
+    if(!ok){ alert('저장 실패: '+(msg||'서버 확인 필요')+'\n입력한 일정은 아직 반영되지 않았습니다. 서버를 확인하고 다시 저장하세요.'); return; }
+    STATE.schedules=list; closeSchModal(); render();
+  });
+}
+
+/* ---- 목표 탭 ---- */
+var tMetric='sales';
+function renderTarget(p){
+  var T=STATE.target||{}; var team=T['팀 총계']||{live:{},one:{}};
+  function card(title,c,emph){ c=c||{};
+    return '<div class="card"'+(emph?' style="border-left:3px solid var(--accent);"':'')+'>'+
+      '<div class="lbl">'+title+'</div><div class="grid" style="grid-template-columns:repeat(3,1fr);">'+
+      '<div><div class="k">시간</div><div class="num" style="font-size:22px;">'+fmt(c.time,'H')+'</div></div>'+
+      '<div><div class="k">매출</div><div class="num" style="font-size:22px;">'+fmt(c.sales)+'</div></div>'+
+      '<div><div class="k">공헌이익</div><div class="num" style="font-size:22px;">'+fmt(c.profit)+'</div></div>'+
+      '</div></div>';
+  }
+  function teamTotal(){ // Live+One 합
+    var o={}; ['sales','profit','time'].forEach(function(f){
+      var l=team.live&&team.live[f], n=team.one&&team.one[f];
+      o[f]=(l!=null||n!=null)?r1((l||0)+(n||0)):null;
+    }); return o;
+  }
+  var head='<div class="sec-title">월간 목표 <span class="mut">· 팀 총 / 채널별 · 단위 매출·공헌이익=억, 시간=H</span></div>'+
+    '<div class="grid mb" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">'+
+      card('팀 총 목표 (Live+One)', teamTotal(), true)+
+      card('LiveTV 목표', team.live)+
+      card('OneTV 목표', team.one)+'</div>';
+  var html=head+'<div style="display:flex;gap:2px;margin-bottom:16px;" id="tgtPills"></div>'+
+    '<div class="sec-title" id="tgtTitle"></div>'+
+    '<div class="tbl-wrap"><table style="min-width:420px;"><thead><tr>'+
+    '<th class="brd-r" style="text-align:left;">파트</th><th>Live</th><th>One</th><th class="acc">합계</th>'+
+    '</tr></thead><tbody id="tgtBody"></tbody></table></div>'+
+    '<div class="foot">※ 목표는 월 단위. 진척율 = 누적 실적 ÷ 월 목표.</div>';
+  p.innerHTML=html;
+  renderTgtInner();
+}
+function renderTgtInner(){
+  var metrics=[['sales','매출'],['profit','공헌이익'],['time','시간']];
+  document.getElementById('tgtPills').innerHTML=metrics.map(m=>'<button class="pill'+(m[0]===tMetric?' active':'')+'" onclick="setTM(\''+m[0]+'\')">'+m[1]+'</button>').join('');
+  var unit=tMetric==='time'?'H':'억';
+  document.getElementById('tgtTitle').innerHTML='파트별 '+metrics.find(m=>m[0]===tMetric)[1]+' 목표 <span class="mut">· 26년 당월 · 단위 '+unit+'</span>';
+  var T=STATE.target||{};
+  var order=['여행','렌탈 계','렌탈1','렌탈2','렌탈3','보험IB 계','보험IB','매체TV','보험OB','팀 총계'];
+  var indent={'렌탈1':1,'렌탈2':1,'렌탈3':1,'보험IB':1,'매체TV':1};
+  var body='';
+  order.forEach(function(part){
+    var t=T[part]; if(!t) return;
+    var isT=(part==='팀 총계'), isGrp=/계$/.test(part);
+    var L=t.live&&t.live[tMetric], O=t.one&&t.one[tMetric];
+    var S=(L!=null||O!=null)?r1((L||0)+(O||0)):null;
+    var cls=isT?'grp-row':(isGrp?'total-row':'');
+    var nm=(indent[part]?'└ ':'')+part;
+    body+='<tr class="'+cls+'"><td class="brd-r" style="text-align:left;'+(indent[part]?'padding-left:22px;':'')+(isT||isGrp?'font-weight:600;':'')+'">'+nm+'</td>'+
+      '<td class="mut">'+fmt(L,unit)+'</td><td class="mut">'+fmt(O,unit)+'</td><td class="acc" style="font-weight:600;">'+fmt(S,unit)+'</td></tr>';
+  });
+  document.getElementById('tgtBody').innerHTML=body;
+}
+function setTM(m){tMetric=m;renderTgtInner();}
+</script>
 </body>
 </html>
